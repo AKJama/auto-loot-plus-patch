@@ -26,7 +26,8 @@
 #include <vector>
 
 // Mod version: log line and the title of the F8 menu (overlay.cpp). Keep in sync with mod.lua/mod.json/package.py.
-extern const char* const kModVersion = "1.1.8";
+// 1.1.8-fix1: unofficial fix for game patch 1.0.1.0 (DLL only; mod.lua/mod.json stay 1.1.8).
+extern const char* const kModVersion = "1.1.8-fix1";
 
 // ---------------------------------------------------------------------------
 // dinput8 proxy
@@ -442,8 +443,14 @@ static uint8_t* AllocNear(uint8_t* target, size_t size)
 }
 
 // ---------------------------------------------------------------------------
-// Game knowledge (Enshrouded 1.0, build 1269579)
+// Game knowledge (Enshrouded 1.0.1.0, exe stamp 6ae4601e)
 // ---------------------------------------------------------------------------
+// 1.0.1.0 measures the magnet distance differently: xmm7 is now the linear distance to the target's
+// surface, max(0, |d| - size * 0.5), where 1.0 had the squared centre distance. The max-distance
+// check uses the skill radius register (no own constant any more), the near check compares against
+// 0.5 m, a constant shared with the size scale. The stubs square xmm7 so the dist2 parameters keep
+// their meaning. Patterns of 1.0 (1.1.8) do not match 1.0.1.0 and vice versa; the value check in
+// Patch() refuses any build whose constants differ.
 
 static const uint32_t kHashPickupItem = 0x08775A90;            // keen::ecs::PickupItem (qualifiedHash in .cache\types.json)
 static const uint32_t kHashLootedCorpse = 0x761CCA43;          // keen::ecs::DisableColliderModeChanges
@@ -453,22 +460,20 @@ static const uint32_t kHashEnemySettings = 0x67FE5508;         // keen::ecs::Ene
 static const char* kSigBox =
     "88 54 24 10 48 89 4C 24 08 55 53 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 48 8B 39 48 8B D9 48 8B CF "
     "48 89 7C 24 30 E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 48 89 B4 24 ?? ?? ?? ?? 48 8D 54 24 48 48 8B CF "
-    "44 0F 29 94 24 ?? ?? ?? ?? E8 ?? ?? ?? ?? F3 0F 10 2D";
+    "44 0F 29 ?? 24 ?? ?? ?? ?? E8 ?? ?? ?? ?? F3 0F 10 2D";   // 1.0.1.0: movaps [rsp+X],xmm11 (was xmm10)
 static const size_t kSigBoxDisp = 0x58;
 
-// Pickup radius (1.75 m) and skill radius (3.5 m): movss xmm12 / xmm13,[rip+X]
+// Magnet constants: movss xmm12 / xmm13 / xmm14,[rip+X]
+//   +0x1B xmm12 = 0.5: size scale and near distance (closer = loot at once, else pull); never redirected
+//   +0x2D xmm13 = 3.5: max distance and radius with the magnet skill
+//   +0x3F xmm14 = 1.75: radius without the skill
 static const char* kSigRadii =
-    "44 0F 29 9C 24 ?? ?? ?? ?? 45 0F 57 DB 44 0F 29 A4 24 ?? ?? ?? ?? "
+    "44 0F 29 ?? 24 ?? ?? ?? ?? 45 0F 57 ?? 44 0F 29 A4 24 ?? ?? ?? ?? "
     "F3 44 0F 10 25 ?? ?? ?? ?? 44 0F 29 AC 24 ?? ?? ?? ?? F3 44 0F 10 2D ?? ?? ?? ?? 44 0F 29 B4 24 ?? ?? ?? ?? "
     "F3 44 0F 10 35 ?? ?? ?? ?? 44 0F 29 BC 24";
-static const size_t kSigRadiiA = 0x1B;
+static const size_t kSigRadiiNear = 0x1B;
 static const size_t kSigRadiiB = 0x2D;
-static const size_t kSigRadiiNear = 0x3F;   // xmm14 = 0.5625 (0.75 m squared): closer = loot at once, else pull
-
-// Max squared distance (12.25): comiss xmm7,[rip+X]
-static const char* kSigMaxDist =
-    "F3 41 0F 59 FA F3 41 0F 59 C2 F3 0F 59 FF F3 0F 59 C0 F3 0F 58 F9 F3 0F 58 F8 0F 2F 3D ?? ?? ?? ?? 0F 87";
-static const size_t kSigMaxDistDisp = 0x1D;
+static const size_t kSigRadiiA = 0x3F;
 
 // Entity query: "mov eax,[PickupItem hash]; ... call Query"
 static const char* kSigQuery =
@@ -487,9 +492,10 @@ static size_t g_ctxAreaLoot = 0;   // 0 = not found: accepts are not restricted 
 // "no PickupItem -> skip": je rel32 that we retarget to the loot-all event block
 static const char* kSigNoPickup =
     "48 8B 08 48 85 C9 0F 84 ?? ?? ?? ?? 48 8D 95 ?? ?? ?? ?? E8 ?? ?? ?? ?? 84 C0 0F 84 ?? ?? ?? ?? "
-    "44 0F 2F F7 0F 86 ?? ?? ?? ?? 48 8B 83";
+    "44 0F 2F E7 0F 86 ?? ?? ?? ?? 48 8B 83";   // 1.0.1.0: comiss xmm12,xmm7 (was xmm14)
 static const size_t kSigNoPickupJe = 0x06;
 static const size_t kSigNoPickupCheck = 0x13;   // call Check(PickupItem, ctx) – item filter (pickup path)
+static const size_t kSigNoPickupNear = 0x20;    // comiss xmm12,xmm7 (4 bytes) + jbe <pull> (6 bytes) -> nearStub
 static const size_t kSigNoPickupLootAll = 0x2A;
 
 // Line of sight: "mov rdx,[rbx+458h]; mov rcx,[rsp+50h]; call HasAreaLoot; test al,al; jne <skip raycast>"
@@ -499,11 +505,12 @@ static const char* kSigSight = "0F 87 ?? ?? ?? ?? 48 8B 93 58 04 00 00 48 8B 4C 
 static const size_t kSigSightJne = 0x19;
 
 // System area_loot (pulls marked items to the player): drops them again beyond 1.75 / 3.5 m
+// (registers left open: 1.0.1.0 renamed all of them; it compares the surface distance, linear)
 static const char* kSigPull =
-    "66 41 85 84 24 B0 05 00 00 74 ?? B2 08 49 8B CF E8 ?? ?? ?? ?? 48 8B 55 ?? 84 C0 75 ?? "
-    "F3 44 0F 10 05 ?? ?? ?? ?? EB ?? F3 44 0F 10 05 ?? ?? ?? ?? F3 0F 10 05";
-static const size_t kSigPullA = 0x22;
-static const size_t kSigPullB = 0x2D;
+    "B0 05 00 00 74 ?? B2 08 49 8B ?? E8 ?? ?? ?? ?? 48 8B ?? ?? 84 C0 75 ?? "
+    "F3 44 0F 10 ?? ?? ?? ?? ?? EB ?? F3 44 0F 10";
+static const size_t kSigPullA = 0x1D;
+static const size_t kSigPullB = 0x28;
 
 // Hold-E gate: "test byte [rdx+34h],80h; jne +3; xor al,al; ret"
 static const char* kSigGate = "F6 42 34 80 75 03 32 C0 C3 B8 00 10 00 00 66 85";
@@ -511,7 +518,7 @@ static const size_t kSigGateJne = 0x04;
 
 // Context offsets of player_control_action_sequence (component accessors / event outputs)
 static const size_t kCtxOfferRuntime = 0x488;   // InteractionOfferRuntime (random-access read)
-static const size_t kCtxAcceptEvent = 0x530;    // AcceptOfferedInteractionEvent output
+static size_t g_ctxAcceptEvent = 0;            // AcceptOfferedInteractionEvent output (1.0: 0x530, 1.0.1.0: 0x538), read from the vanilla emitter
 static const size_t kOfferIdOffset = 40;        // InteractionOfferRuntime.offerId
 static const size_t kOfferDisabledOffset = 46;  // InteractionOfferRuntime.isDisabled
 
@@ -1378,7 +1385,7 @@ static bool __fastcall OnLootAllTarget(uint8_t* ctx, uint8_t* gameRsp, uint32_t 
         void** slotP = g_getComponent(tmpP, entity, *reinterpret_cast<void**>(ctx + kCtxOfferRuntime));
         uint8_t* offerP = slotP ? static_cast<uint8_t*>(*slotP) : nullptr;
         if (!offerP || offerP[kOfferDisabledOffset] || !FirstAcceptDue(host)) return true;
-        uint8_t* evP = g_allocAccept(*reinterpret_cast<void**>(ctx + kCtxAcceptEvent));
+        uint8_t* evP = g_allocAccept(*reinterpret_cast<void**>(ctx + g_ctxAcceptEvent));
         if (!evP) return true;
         uint32_t idP = *reinterpret_cast<uint32_t*>(offerP + kOfferIdOffset);
         TargetAccepted(host, idP);
@@ -1426,7 +1433,7 @@ static bool __fastcall OnLootAllTarget(uint8_t* ctx, uint8_t* gameRsp, uint32_t 
         return true;
     }
 
-    uint8_t* ev = g_allocAccept(*reinterpret_cast<void**>(ctx + kCtxAcceptEvent));
+    uint8_t* ev = g_allocAccept(*reinterpret_cast<void**>(ctx + g_ctxAcceptEvent));
     if (!ev) return false;
     TargetAccepted(host, offerId);
     uint8_t tmp2[64] = {};
@@ -1543,10 +1550,9 @@ static bool __fastcall GateHook(uint8_t* state, uint8_t* input, void* actor)
 
 struct NearData {
     float boxHalf;
-    float maxDist2;
     float radiusA;
     float radiusB;
-    float nearDist2;        // closer than this = loot at once, else pull (instantLoot: whole radius)
+    float nearDist;         // surface distance closer than this = loot at once, else pull (instantLoot: whole radius)
     uint8_t ignoreSight;    // read by sightStub: 1 = skip the visibility raycast
     uint8_t trampoline[16];
     uint8_t lootAllStub[64];
@@ -1554,10 +1560,11 @@ struct NearData {
     uint8_t questStub[128];
     uint8_t sightStub[48];
     uint8_t pickupStub[80];
+    uint8_t nearStub[32];
 };
 
 static NearData* g_near = nullptr;
-static float g_vanillaNearDist2 = 0.5625f;   // read from the game before patching
+static float g_vanillaNearDist = 0.5f;   // read from the game before patching
 
 // Small code emitter for the stubs
 struct Emit {
@@ -1616,10 +1623,11 @@ static void BuildPickupStub(uint8_t* call)
     e.bytes({ 0x48, 0xB8 }); e.imm64(reinterpret_cast<uint64_t>(original));
     e.bytes({ 0xFF, 0xD0 });                             // call original (rcx, rdx unchanged)
     e.bytes({ 0x84, 0xC0 });                             // test al,al
-    e.bytes({ 0x74, 0x1D });                             // jz done (29 bytes)
+    e.bytes({ 0x74, 0x21 });                             // jz done (33 bytes)
     e.bytes({ 0x48, 0x8B, 0x4C, 0x24, 0x20 });           // mov rcx,[rsp+20h]            (component)
     e.bytes({ 0x48, 0x8B, 0x94, 0x24, 0x80, 0x00, 0x00, 0x00 });   // mov rdx,[rsp+80h]  (entity = game rsp+50h)
-    e.bytes({ 0xF3, 0x0F, 0x10, 0xD7 });                 // movss xmm2,xmm7              (squared distance)
+    e.bytes({ 0xF3, 0x0F, 0x10, 0xD7 });                 // movss xmm2,xmm7              (surface distance)
+    e.bytes({ 0xF3, 0x0F, 0x59, 0xD2 });                 // mulss xmm2,xmm2              (squared)
     e.bytes({ 0x48, 0xB8 }); e.imm64(reinterpret_cast<uint64_t>(&FilterPickup));
     e.bytes({ 0xFF, 0xD0 });                             // call FilterPickup
     e.bytes({ 0x48, 0x83, 0xC4, 0x28 });                 // done: add rsp,28h
@@ -1637,7 +1645,8 @@ static void BuildGateStub(uint8_t* je, uint8_t* lootAll)
     Emit g{ g_near->gateStub };
     g.bytes({ 0x48, 0x8B, 0xCB,                       // mov rcx, rbx
               0x48, 0x8B, 0xD4,                       // mov rdx, rsp
-              0xF3, 0x0F, 0x10, 0xD7,                 // movss xmm2, xmm7 (squared distance of the target)
+              0xF3, 0x0F, 0x10, 0xD7,                 // movss xmm2, xmm7 (surface distance of the target)
+              0xF3, 0x0F, 0x59, 0xD2,                 // mulss xmm2, xmm2 (squared)
               0x48, 0x83, 0xEC, 0x20,                 // sub rsp, 20h
               0x48, 0xB8 });                          // mov rax, imm64
     g.imm64(reinterpret_cast<uint64_t>(&OnNoPickupTarget));
@@ -1678,6 +1687,26 @@ static void BuildSightStub(uint8_t* jne)
     WriteCode(jne, jmp, sizeof jmp);
 }
 
+// Near check: "comiss xmm12,xmm7; jbe <pull>" (10 bytes) compares against xmm12 = 0.5, which is also the
+// size scale, so the constant cannot be redirected. nearStub does the same compare against
+// g_near->nearDist without touching a register: "comiss xmm7,[nearDist]; jae pull; jp pull" is
+// "nearDist <= dist or unordered", exactly the vanilla jbe.
+static void BuildNearStub(uint8_t* site)
+{
+    uint8_t* pull = site + 10 + *reinterpret_cast<int32_t*>(site + 6);
+    Emit e{ g_near->nearStub };
+    e.bytes({ 0x0F, 0x2F, 0x3D }); e.rel32To(&g_near->nearDist);   // comiss xmm7,[rip+nearDist]
+    e.bytes({ 0x0F, 0x83 }); e.rel32To(pull);                      // jae pull
+    e.bytes({ 0x0F, 0x8A }); e.rel32To(pull);                      // jp pull
+    e.bytes({ 0xE9 }); e.rel32To(site + 10);                       // jmp back (loot at once)
+    FlushInstructionCache(GetCurrentProcess(), g_near->nearStub, e.p - g_near->nearStub);
+
+    uint8_t jmp[10] = { 0xE9, 0, 0, 0, 0, 0x90, 0x90, 0x90, 0x90, 0x90 };
+    int32_t rel = Rel32(site + 5, g_near->nearStub);
+    memcpy(jmp + 1, &rel, 4);
+    WriteCode(site, jmp, sizeof jmp);
+}
+
 static void WriteJumpAbs(uint8_t* at, const void* target)   // mov rax, imm64; jmp rax (12 bytes)
 {
     uint8_t code[12] = { 0x48, 0xB8 };
@@ -1704,10 +1733,9 @@ static void ApplyRadius()
 {
     float r = SearchRadius();
     g_near->boxHalf = r > 7.0f ? r : 7.0f;
-    g_near->maxDist2 = r * r;
     g_near->radiusA = r;
     g_near->radiusB = r;
-    g_near->nearDist2 = g_cfg.instantLoot ? r * r : g_vanillaNearDist2;
+    g_near->nearDist = g_cfg.instantLoot ? r : g_vanillaNearDist;
     g_near->ignoreSight = g_cfg.ignoreLineOfSight ? 1 : 0;
 }
 
@@ -2025,7 +2053,6 @@ static bool Patch()
     Site sites[] = {
         { "box", kSigBox, false, nullptr },
         { "radii", kSigRadii, true, nullptr },
-        { "maxDist", kSigMaxDist, true, nullptr },
         { "query", kSigQuery, true, nullptr },
         { "noPickup", kSigNoPickup, true, nullptr },
         { "gate", kSigGate, false, nullptr },
@@ -2048,43 +2075,64 @@ static bool Patch()
         }
     }
     if (!ok) return false;
+    uint8_t* box = sites[0].at; uint8_t* radii = sites[1].at; uint8_t* query = sites[2].at;
+    uint8_t* noPickup = sites[3].at; uint8_t* gate = sites[4].at; uint8_t* pull = sites[5].at;
+    uint8_t* sight = sites[6].at;
+
+    // The patterns say where; the constants say whether the code still means the same. A build that
+    // shuffles or retunes them must not be patched blindly.
+    struct Expect { const char* name; uint8_t* disp; float value; };
+    const Expect expect[] = {
+        { "box", box + kSigBoxDisp, 7.0f },
+        { "near", radii + kSigRadiiNear, 0.5f },
+        { "radiusSkill", radii + kSigRadiiB, 3.5f },
+        { "radius", radii + kSigRadiiA, 1.75f },
+        { "pullA", pull + kSigPullA, 1.75f },
+        { "pullB", pull + kSigPullB, 3.5f },
+    };
+    for (const auto& x : expect) {
+        float v = *reinterpret_cast<float*>(x.disp + 4 + *reinterpret_cast<int32_t*>(x.disp));
+        if (v != x.value) {
+            Log("Konstante '%s' = %.4f (erwartet %.4f)", x.name, v, x.value);
+            ok = false;
+        }
+    }
+    if (!ok) return false;
 
     g_near = reinterpret_cast<NearData*>(AllocNear(g_textStart, sizeof(NearData)));
     if (!g_near || !InRel32(g_textStart, g_near) || !InRel32(g_textStart + g_textSize, g_near)) {
         Log("Kein Speicher in Reichweite des Spielcodes");
         return false;
     }
-    uint8_t* nearDisp = sites[1].at + kSigRadiiNear;
-    g_vanillaNearDist2 = *reinterpret_cast<float*>(nearDisp + 4 + *reinterpret_cast<int32_t*>(nearDisp));
-    if (g_cfg.debugLog) Log("Nahbereich Original: %.4f (erwartet 0.5625)", g_vanillaNearDist2);
+    uint8_t* nearDisp = radii + kSigRadiiNear;
+    g_vanillaNearDist = *reinterpret_cast<float*>(nearDisp + 4 + *reinterpret_cast<int32_t*>(nearDisp));
     ApplyRadius();
 
-    // Radius
-    PatchDisp(sites[0].at + kSigBoxDisp, &g_near->boxHalf);
-    PatchDisp(sites[1].at + kSigRadiiA, &g_near->radiusA);
-    PatchDisp(sites[1].at + kSigRadiiB, &g_near->radiusB);
-    PatchDisp(sites[2].at + kSigMaxDistDisp, &g_near->maxDist2);
+    // Radius. The max-distance check uses the skill radius (xmm13), so radiusB is also the limit.
+    PatchDisp(box + kSigBoxDisp, &g_near->boxHalf);
+    PatchDisp(radii + kSigRadiiA, &g_near->radiusA);
+    PatchDisp(radii + kSigRadiiB, &g_near->radiusB);
     // Instant loot: everything inside the radius is looted directly instead of being pulled.
     // Static things (mushrooms, fireflies in bushes) cannot be pulled and would never arrive.
     // Always our own float, so the menu can switch it while the game runs.
-    PatchDisp(nearDisp, &g_near->nearDist2);
-    PatchDisp(sites[6].at + kSigPullA, &g_near->radiusA);
-    PatchDisp(sites[6].at + kSigPullB, &g_near->radiusB);
+    BuildNearStub(noPickup + kSigNoPickupNear);
+    PatchDisp(pull + kSigPullA, &g_near->radiusA);
+    PatchDisp(pull + kSigPullB, &g_near->radiusB);
 
-    BuildSightStub(sites[7].at + kSigSightJne);
+    BuildSightStub(sight + kSigSightJne);
 
     // Loot-all targets (chests, bushes, crops, corpses): extra queries + jump to the loot-all event
     // when there is no PickupItem. Always installed; QueryHook asks for corpses only while enabled.
     {
-        uint8_t* call = sites[3].at + kSigQueryCall;
+        uint8_t* call = query + kSigQueryCall;
         g_origQuery = reinterpret_cast<QueryFn>(call + 5 + *reinterpret_cast<int32_t*>(call + 1));
         WriteJumpAbs(g_near->trampoline, &QueryHook);
         int32_t rel = Rel32(call + 5, g_near->trampoline);
         WriteCode(call + 1, &rel, 4);
 
         // Game helpers, taken from call sites next to the verified patterns
-        uint8_t* getCall = sites[4].at - 5;               // call GetComponent (PickupItem lookup)
-        uint8_t* guestCall = sites[4].at + 0x7A;          // call GetCurrentEntity (loot-all block)
+        uint8_t* getCall = noPickup - 5;               // call GetComponent (PickupItem lookup)
+        uint8_t* guestCall = noPickup + 0x7A;          // call GetCurrentEntity (loot-all block)
         if (getCall[0] == 0xE8 && guestCall[0] == 0xE8) {
             g_getComponent = reinterpret_cast<GetComponentFn>(getCall + 5 + *reinterpret_cast<int32_t*>(getCall + 1));
             g_getGuest = reinterpret_cast<GetIdFn>(guestCall + 5 + *reinterpret_cast<int32_t*>(guestCall + 1));
@@ -2094,21 +2142,37 @@ static bool Patch()
         uint8_t* header = FindFirst(kSigHeader, &n1);
         if (header) g_getHeader = reinterpret_cast<GetHeaderFn>(header + 12 + *reinterpret_cast<int32_t*>(header + 8));
         g_allocAccept = reinterpret_cast<AllocEventFn>(FindUnique(kSigAllocAccept, &n2));
+        // Context offset of the AcceptOffered output: the vanilla emitter passes it to AllocAccept right
+        // behind the header calls, "mov rcx,[r14+X]; call AllocAccept" (1.0.1.0: X = 538h, header+26h).
+        g_ctxAcceptEvent = 0;
+        for (uint8_t* p = header; p && g_allocAccept && p < header + 0x80; ++p) {
+            if (p[0] == 0x49 && p[1] == 0x8B && p[2] == 0x8E && p[5] == 0 && p[6] == 0 && p[7] == 0xE8 &&
+                p + 12 + *reinterpret_cast<int32_t*>(p + 8) == reinterpret_cast<uint8_t*>(g_allocAccept)) {
+                g_ctxAcceptEvent = *reinterpret_cast<uint32_t*>(p + 3);
+                break;
+            }
+        }
+        if (!g_ctxAcceptEvent) {
+            Log("Kontext von AcceptOffered nicht gefunden – Leichen/Büsche ohne Annahme");
+            g_allocAccept = nullptr;
+        }
         if (g_cfg.debugLog)
-            Log("Helfer: GetComponent=%p Guest=%p Header=%p AllocAccept=%p", (void*)g_getComponent,
-                (void*)g_getGuest, (void*)g_getHeader, (void*)g_allocAccept);
+            Log("Helfer: GetComponent=%p Guest=%p Header=%p AllocAccept=%p Annahme=Kontext+%zX", (void*)g_getComponent,
+                (void*)g_getGuest, (void*)g_getHeader, (void*)g_allocAccept, g_ctxAcceptEvent);
 
         // Every target that reaches the loot-all event block (pickups with an inventory like fireflies,
         // corpses, bushes, chests) first gets OnLootAllTarget(ctx=rbx, gameRsp=rsp, host=edi).
-        // The block starts with "mov rax,[rbx+548h]" (7 bytes); it is replaced by a jmp to the stub,
+        // The block starts with "mov rax,[rbx+X]" (7 bytes; 1.0: 548h, 1.0.1.0: 550h, copied as found);
+        // it is replaced by a jmp to the stub,
         // which runs the call and then either the displaced instruction and the jump back (loot-all
         // allowed) or the game's "next entity" path, the original target of the no-PickupItem je
         // (same as in BuildGateStub) - so the accept and the loot-all never run in the same pass.
-        uint8_t* lootAll = sites[4].at + kSigNoPickupLootAll;
-        uint8_t* noPickupJe = sites[4].at + kSigNoPickupJe;
+        uint8_t* lootAll = noPickup + kSigNoPickupLootAll;
+        uint8_t* noPickupJe = noPickup + kSigNoPickupJe;
         uint8_t* nextEntity = noPickupJe + 6 + *reinterpret_cast<int32_t*>(noPickupJe + 2);
-        static const uint8_t kBlockEntry[] = { 0x48, 0x8B, 0x83, 0x48, 0x05, 0x00, 0x00 };
-        if (memcmp(lootAll, kBlockEntry, sizeof kBlockEntry) != 0) {
+        uint8_t kBlockEntry[7];
+        memcpy(kBlockEntry, lootAll, sizeof kBlockEntry);
+        if (kBlockEntry[0] != 0x48 || kBlockEntry[1] != 0x8B || kBlockEntry[2] != 0x83 || kBlockEntry[5] || kBlockEntry[6]) {
             Log("Loot-all-Block passt nicht – Leichen/Büsche aus");
             return false;
         }
@@ -2117,7 +2181,8 @@ static bool Patch()
         const uint8_t pre[] = { 0x48, 0x8B, 0xCB,             // mov rcx, rbx
                                 0x48, 0x8B, 0xD4,             // mov rdx, rsp
                                 0x44, 0x8B, 0xC7,             // mov r8d, edi
-                                0xF3, 0x0F, 0x10, 0xDF,       // movss xmm3, xmm7 (squared distance of the target)
+                                0xF3, 0x0F, 0x10, 0xDF,       // movss xmm3, xmm7 (surface distance of the target)
+                                0xF3, 0x0F, 0x59, 0xDB,       // mulss xmm3, xmm3 (squared)
                                 0x48, 0x83, 0xEC, 0x20,       // sub rsp, 20h
                                 0x48, 0xB8 };                 // mov rax, imm64
         memcpy(s, pre, sizeof pre); k = sizeof pre;
@@ -2130,7 +2195,7 @@ static bool Patch()
         memcpy(s + k, post, sizeof post); k += sizeof post;
         int32_t skipRel = Rel32(s + k + 4, nextEntity);
         memcpy(s + k, &skipRel, 4); k += 4;
-        memcpy(s + k, kBlockEntry, sizeof kBlockEntry); k += sizeof kBlockEntry;   // mov rax,[rbx+548h]
+        memcpy(s + k, kBlockEntry, sizeof kBlockEntry); k += sizeof kBlockEntry;   // mov rax,[rbx+X]
         s[k++] = 0xE9;                                        // jmp back behind the displaced instruction
         int32_t backRel = Rel32(s + k + 4, lootAll + sizeof kBlockEntry);
         memcpy(s + k, &backRel, 4); k += 4;
@@ -2144,10 +2209,10 @@ static bool Patch()
         // Targets without PickupItem (corpses, bushes, chests) go through the release check into the
         // loot-all block; not released -> the original jump target ("next entity", only rax and rbp
         // are used there, rbx = context as here)
-        BuildGateStub(sites[4].at + kSigNoPickupJe, lootAll);
+        BuildGateStub(noPickup + kSigNoPickupJe, lootAll);
 
         // Item filter on the pickup path: the game's check call right behind the PickupItem lookup
-        uint8_t* pickupCall = sites[4].at + kSigNoPickupCheck;
+        uint8_t* pickupCall = noPickup + kSigNoPickupCheck;
         if (pickupCall[0] == 0xE8) BuildPickupStub(pickupCall);
         else Log("Pruefaufruf der Bodenbeute passt nicht – Gegenstandsfilter nur fuer Behaelter");
 
@@ -2167,7 +2232,6 @@ static bool Patch()
 
     // Gate: replaced by GateHook (automatic mode + diagnostics). The vanilla helper is the
     // "jmp rel32" at the end of the gate: "B2 08 49 8B C8 E9 rel32" at +0x1A.
-    uint8_t* gate = sites[5].at;
     static const uint8_t tail[] = { 0xB2, 0x08, 0x49, 0x8B, 0xC8, 0xE9 };
     if (memcmp(gate + 0x1A, tail, sizeof tail) != 0) {
         Log("Gate-Ende passt nicht – Auto-Modus nicht aktiv");
