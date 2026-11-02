@@ -27,7 +27,8 @@
 
 // Mod version: log line and the title of the F8 menu (overlay.cpp). Keep in sync with mod.lua/mod.json/package.py.
 // 1.1.8-fix1: unofficial fix for game patch 1.0.1.0 (DLL only; mod.lua/mod.json stay 1.1.8).
-extern const char* const kModVersion = "1.1.8-fix1";
+// 1.1.8-fix2: the window check no longer blocks looting under Proton (see GameWindowOpen).
+extern const char* const kModVersion = "1.1.8-fix2";
 
 // ---------------------------------------------------------------------------
 // dinput8 proxy
@@ -123,6 +124,9 @@ void Log(const char* fmt, ...)
     fclose(f);
 }
 
+// windowCheck in config.txt: how GateHook decides that a game window is open (see GameWindowOpen)
+enum class WindowCheck { Auto, On, Off };
+
 struct Config {
     bool enabled = true;
     float radius = 15.0f;
@@ -148,6 +152,7 @@ struct Config {
     int stackSize = 9999;                        // 0 = game default
     bool liveData = true;                        // false = no memory scan/patch (smash and stack size then need a restart)
     bool liveWrite = true;                       // liveData=scan: search only, never write (diagnosis)
+    WindowCheck windowCheck = WindowCheck::Auto;
 };
 static Config g_cfg;
 
@@ -268,6 +273,11 @@ static bool ApplyConfigKey(const std::string& key, const std::string& val)
     else if (key == "autoSmash") c.autoSmash = ParseBool(val, c.autoSmash);
     else if (key == "smashBuildableAwayFromBase") c.smashShared = ParseBool(val, c.smashShared);
     else if (key == "stackSize") c.stackSize = (int)ClampRadius(val, 0.0f, 65535.0f);
+    else if (key == "windowCheck") {   // auto (default), on, off; anything else = auto
+        std::string s;
+        for (char ch : val) s += (char)tolower((unsigned char)ch);
+        c.windowCheck = s == "on" ? WindowCheck::On : s == "off" ? WindowCheck::Off : WindowCheck::Auto;
+    }
     else if (key == "liveData") {
         c.liveWrite = !(val == "scan" || val == "Scan");
         c.liveData = !c.liveWrite || ParseBool(val, c.liveData);
@@ -1509,7 +1519,23 @@ static const uint64_t kEnemyPauseMs = 2000;   // after the last enemy seen withi
 // of death stays "done" until the run restarts (seen 19.10.: corpses were looted as soon as the
 // pause menu was opened and closed, i.e. after one frame without the magnet).
 static const uint64_t kGateBlinkMs = 2000;
-extern uint64_t g_lastCursorRecenter;   // overlay.cpp: last SetCursorPos of the game (diagnostics)
+extern uint64_t g_lastCursorRecenter;   // overlay.cpp: last SetCursorPos of the game, 0 = never
+
+// The cursor test only means something where the game hides the cursor during play. On Windows it
+// does, and it recenters the cursor with SetCursorPos while you play. Under Proton the cursor counts
+// as showing all the time and the game never calls SetCursorPos (Linux player on Nexus, 2026-11:
+// FensterPause = Aufrufe from the first frame, one "sichtbar", never "versteckt", no recenter at
+// all), so the window guard blocked every loot path and even the vanilla hold-E magnet.
+// windowCheck=auto therefore trusts the cursor only after the game has recentered it once this
+// session; until then a game window counts as closed. on = always trust it (1.1.8), off = never.
+static bool GameWindowOpen()
+{
+    switch (g_cfg.windowCheck) {
+    case WindowCheck::Off: return false;
+    case WindowCheck::On: return g_cursorShown();
+    default: return g_lastCursorRecenter != 0 && g_cursorShown();
+    }
+}
 
 static bool __fastcall GateHook(uint8_t* state, uint8_t* input, void* actor)
 {
@@ -1524,7 +1550,7 @@ static bool __fastcall GateHook(uint8_t* state, uint8_t* input, void* actor)
     bool vanilla = held && ((*reinterpret_cast<uint16_t*>(state + 0x5B0) & 0x1000) || g_gateCheck(actor, 8));
     if (held) InterlockedIncrement64(&g_statGateHeld);
     if (vanilla) InterlockedIncrement64(&g_statGateVanilla);
-    bool window = g_cursorShown() || Overlay_MenuOpen();
+    bool window = GameWindowOpen() || Overlay_MenuOpen();
     g_windowOpen = window;
     if (!g_cfg.autoLoot) return vanilla;
     static bool lastWindow = false;
@@ -1532,10 +1558,13 @@ static bool __fastcall GateHook(uint8_t* state, uint8_t* input, void* actor)
     if (window != lastWindow) {
         lastWindow = window;
         if (g_cfg.debugLog && InterlockedIncrement(&windowLogs) <= 60)
-            Log("Mauszeiger %s – Magnet %s (letzte Neuzentrierung vor %llu ms)", window ? "sichtbar" : "versteckt",
-                window ? "aus" : "automatisch", (unsigned long long)(GetTickCount64() - g_lastCursorRecenter));
+            Log("Fenster %s – Magnet %s (Mauszeiger %s, letzte Neuzentrierung %s %llu ms)", window ? "offen" : "zu",
+                window ? "aus" : "automatisch", g_cursorShown() ? "sichtbar" : "versteckt",
+                g_lastCursorRecenter ? "vor" : "nie, Laufzeit",
+                (unsigned long long)(GetTickCount64() - g_lastCursorRecenter));
     }
-    // off, not "vanilla": the E bit stays set in windows (log 23.10.2026: E-gehalten rose with the cursor shown)
+    // off, not "vanilla": the E bit stays set in windows (log 23.10.2026: E-gehalten rose with the cursor shown).
+    // Only a window GameWindowOpen trusts gets here, so an always-shown cursor no longer turns hold-E off.
     if (window) { InterlockedIncrement64(&g_statGatePaused); return false; }
     static uint64_t s_lastBlink = 0;
     uint64_t t = Now();
@@ -2248,8 +2277,10 @@ static DWORD WINAPI Worker(LPVOID)
 {
     LoadConfig();
     g_stackAtLoad = g_cfg.stackSize;
-    Log("Auto Loot Plus native %s – radius=%.1f autoLoot=%d corpses=%d instant=%d ignoreSight=%d", kModVersion, g_cfg.radius,
-        g_cfg.autoLoot, g_cfg.corpses, g_cfg.instantLoot, g_cfg.ignoreLineOfSight);
+    static const char* const kWindowCheck[] = { "auto", "on", "off" };
+    Log("Auto Loot Plus native %s – radius=%.1f autoLoot=%d corpses=%d instant=%d ignoreSight=%d windowCheck=%s", kModVersion,
+        g_cfg.radius, g_cfg.autoLoot, g_cfg.corpses, g_cfg.instantLoot, g_cfg.ignoreLineOfSight,
+        kWindowCheck[(int)g_cfg.windowCheck]);
     if (!g_cfg.enabled) { Log("deaktiviert (config.txt)"); return 0; }
     if (!FindText()) { Log(".text nicht gefunden"); return 0; }
 

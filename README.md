@@ -1,7 +1,8 @@
-# Auto Loot Plus 1.1.8-fix1 (unofficial patch)
+# Auto Loot Plus 1.1.8-fix2 (unofficial patch)
 
 An unofficial patch that makes Auto Loot Plus 1.1.8 work with Enshrouded game version 1.0.1.0.
 After that game update the mod loaded but did nothing; its log said "Muster 'box' gefunden: 0 mal".
+It also makes looting work under Linux / Proton again (see "Linux / Steam Deck").
 Only `dinput8.dll` changes; everything else is the original 1.1.8.
 
 ## Credit
@@ -24,7 +25,7 @@ To undo it, put the original 1.1.8 `dinput8.dll` back.
 ## Check that it works
 
 Start the game and open `auto-loot-plus.log` in the game folder.
-It should say "native 1.1.8-fix1" and then "Patches angewendet".
+It should say "native 1.1.8-fix2" and then "Patches angewendet".
 On any other game version it changes nothing and the log says why.
 
 ## Linux / Steam Deck
@@ -37,7 +38,19 @@ WINEDLLOVERRIDES="dinput8=n,b;dbghelp=n,b" %command%
 ```
 
 `dinput8` is for Auto Loot Plus and `dbghelp` is for EML; without EML you only need `WINEDLLOVERRIDES="dinput8=n,b" %command%`.
-This was checked under Wine 10.0 with an offline load test, not yet in the real game under Proton; please report whether it works for you.
+This launch option is still needed with fix2.
+
+Up to fix1, the mod loaded under Proton (F8 worked, smashing worked) but looted nothing, and it even blocked picking up with E held.
+The mod pauses while a game window such as the inventory is open, and it tells that from the mouse cursor being shown.
+Under Proton the cursor counts as shown all the time, so the mod thought a window was always open.
+fix2 trusts the cursor only once the game has recentered it during play, which it does on Windows and never under Proton.
+Under Proton the mod therefore no longer pauses for game windows; it still pauses while its own F8 menu is open.
+A Linux player on the Nexus page found the cause and confirmed it with their own build; thank you.
+fix2 itself was checked under Wine 10.0 with an offline load test, not yet in the real game under Proton; please report whether it works for you.
+
+If looting still stops or misbehaves around game windows, add one line to `mods\auto-loot-plus\config.txt`:
+`windowCheck=auto` is the default described above, `windowCheck=on` always trusts the cursor (as in 1.1.8), and `windowCheck=off` never pauses for game windows.
+The "native 1.1.8-fix2" line in `auto-loot-plus.log` shows which one is active.
 
 ## Check the download
 
@@ -54,7 +67,10 @@ Run `build.cmd`; it fetches Dear ImGui and Vulkan-Headers at pinned versions and
 ## What changed
 
 The first commit is the original 1.1.8 source as downloaded from the Nexus page.
-The second commit is the whole fix; its message explains each change.
+The later commits add the fixes, the build and this README; each commit message explains its change.
+
+- 1.1.8-fix2: looting works under Linux / Proton; the window pause trusts the mouse cursor only once the game has recentered it, plus the `windowCheck` setting (cause found by a Linux player on the Nexus page).
+- 1.1.8-fix1: works with Enshrouded 1.0.1.0 (new code patterns, offsets read from the game code).
 
 ## Licence
 

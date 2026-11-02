@@ -1,6 +1,6 @@
 name: release
 
-# A tag like v1.1.8-fix1 builds dinput8.dll from this public source and makes a draft release.
+# A tag like v1.1.8-fix2 builds dinput8.dll from this public source and makes a draft release.
 # The draft is published by hand after a look.
 on:
   push:
