@@ -27,7 +27,7 @@ exit /b 0
 rem :fetch <folder> <url> <tag> <commit> - clone once, then always check the commit
 :fetch
 set "DIR=native\third_party\%~1"
-if not exist "%DIR%\.git" git clone --quiet --depth 1 --branch %~3 %~2 "%DIR%" || exit /b 1
+if not exist "%DIR%\.git" git -c advice.detachedHead=false clone --quiet --depth 1 --branch %~3 %~2 "%DIR%" || exit /b 1
 set "HEAD="
 for /f %%h in ('git -C "%DIR%" rev-parse HEAD') do set "HEAD=%%h"
 if /i not "%HEAD%"=="%~4" (
