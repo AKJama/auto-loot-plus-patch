@@ -1,0 +1,211 @@
+{
+  "data": [
+    {
+      "name": "Root::entityId",
+      "type": "keen::ecs::EntityId",
+      "configId": 0,
+      "data": {
+        "id": 0
+      }
+    },
+    {
+      "name": "Root::transform",
+      "type": "keen::WorldTransform",
+      "configId": 0,
+      "data": {
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 0.0
+        },
+        "scale": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      }
+    },
+    {
+      "name": "Root::position",
+      "type": "keen::float3",
+      "configId": 0,
+      "data": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "name": "Range::value",
+      "type": "keen::float32",
+      "configId": 0,
+      "data": 15.0
+    },
+    {
+      "name": "WaitDuration::value",
+      "type": "keen::Time",
+      "configId": 0,
+      "data": {
+        "value": 1000000000
+      }
+    },
+    {
+      "name": "PropLoop::index",
+      "type": "keen::uint32",
+      "configId": 0,
+      "data": 0
+    },
+    {
+      "name": "PropLoop::entityId",
+      "type": "keen::ecs::EntityId",
+      "configId": 0,
+      "data": {
+        "id": 0
+      }
+    },
+    {
+      "name": "PropLoop::faction",
+      "type": "keen::FactionMask",
+      "configId": 0,
+      "data": [
+        "Environment"
+      ]
+    },
+    {
+      "name": "SmashTag::value",
+      "type": "keen::ecs::EntityTagReference",
+      "configId": 0,
+      "data": "a5c0de5a-1e00-4d0d-9a11-0000000a5001"
+    },
+    {
+      "name": "SharedTag::value",
+      "type": "keen::ecs::EntityTagReference",
+      "configId": 0,
+      "data": "a5c0de5a-1e00-4d0d-9a11-0000000a5003"
+    },
+    {
+      "name": "InSafeZone::state",
+      "type": "keen::actor::StateFlag",
+      "configId": 0,
+      "data": "InSaveZone"
+    },
+    {
+      "name": "AltarTag::value",
+      "type": "keen::ecs::EntityTagReference",
+      "configId": 0,
+      "data": "a5c0de5a-1e00-4d0d-9a11-0000000a5004"
+    },
+    {
+      "name": "BaseRange::value",
+      "type": "keen::float32",
+      "configId": 0,
+      "data": 175.0
+    },
+    {
+      "name": "AltarLoop::index",
+      "type": "keen::uint32",
+      "configId": 0,
+      "data": 0
+    },
+    {
+      "name": "AltarLoop::entityId",
+      "type": "keen::ecs::EntityId",
+      "configId": 0,
+      "data": {
+        "id": 0
+      }
+    },
+    {
+      "name": "NearBuildZone::state",
+      "type": "keen::actor::StateFlag",
+      "configId": 0,
+      "data": "IsNearBuildingZone"
+    },
+    {
+      "name": "Target::position",
+      "type": "keen::float3",
+      "configId": 0,
+      "data": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "name": "HitNormal::value",
+      "type": "keen::float3",
+      "configId": 0,
+      "data": {
+        "x": 0.0,
+        "y": 1.0,
+        "z": 0.0
+      }
+    },
+    {
+      "name": "HitDirection::value",
+      "type": "keen::impact::MajorDirection",
+      "configId": 0,
+      "data": "BackToFront"
+    },
+    {
+      "name": "WeaponCategory::value",
+      "type": "keen::WeaponCategoryReference",
+      "configId": 0,
+      "data": "3832918e-d03e-43c8-9230-eb35bc366107"
+    },
+    {
+      "name": "HitReaction::value",
+      "type": "keen::impact::HitReactionType",
+      "configId": 0,
+      "data": "None"
+    },
+    {
+      "name": "Pushback::value",
+      "type": "keen::impact::PushBackForce",
+      "configId": 0,
+      "data": "None"
+    },
+    {
+      "name": "Smash::damageSetup",
+      "type": "keen::impact::DamageSetup",
+      "configId": 0,
+      "data": {
+        "physicalCutDamage": 0.0,
+        "physicalPierceDamage": 0.0,
+        "physicalBluntDamage": 100000.0,
+        "magicalFireDamage": 0.0,
+        "magicalIceDamage": 0.0,
+        "magicalFogDamage": 0.0,
+        "magicalLightningDamage": 0.0,
+        "healing": 0.0,
+        "poisonDamage": 0.0,
+        "woodDamage": 100000,
+        "stoneDamage": 100000,
+        "metalDamage": 100000,
+        "explosionDamage": 100000
+      }
+    },
+    {
+      "name": "StoneTag::value",
+      "type": "keen::ecs::EntityTagReference",
+      "configId": 0,
+      "data": "a5c0de5a-1e00-4d0d-9a11-0000000a5009"
+    },
+    {
+      "name": "TreeTag::value",
+      "type": "keen::ecs::EntityTagReference",
+      "configId": 0,
+      "data": "a5c0de5a-1e00-4d0d-9a11-0000000a5007"
+    }
+  ],
+  "queryCallIds": [
+    3831000003
+  ],
+  "usedStreams": []
+}

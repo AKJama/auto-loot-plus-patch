@@ -1,0 +1,9 @@
+iconst Range::value
+iconst Root::transform
+iconst PropLoop::faction
+iconst PropLoop::index
+iconst0
+iconst PropLoop::entityId
+ecall 3831000003 DestroyFactionQuery
+pop
+halt

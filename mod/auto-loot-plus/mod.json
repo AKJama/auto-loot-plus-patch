@@ -1,0 +1,14 @@
+{
+  "id": "auto-loot-plus",
+  "name": "Auto Loot Plus",
+  "version": "1.1.8",
+  "capabilities": [
+    "patch",
+    "export"
+  ],
+  "description": "Automatic looting in an adjustable radius: items, resources, collectibles, plants, enemy corpses and chests (quest items stay). Smashes barrels, crates and urns in ruins (never near a base). Bigger stacks. In-game settings menu (F8). Needs dinput8.dll from the download.",
+  "authors": [
+    "cw"
+  ],
+  "license": "MIT"
+}

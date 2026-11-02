@@ -1,0 +1,225 @@
+# Auto Loot Plus – settings / Einstellungen
+#
+# Easiest way: press F8 in game. The menu saves every change into this file.
+# Am einfachsten: im Spiel F8 drücken. Das Menü speichert jede Änderung in diese Datei.
+#
+# Settings marked [restart] take effect after restarting the game.
+# Mit [restart] markierte Einstellungen gelten erst nach einem Neustart des Spiels.
+
+# Mod on/off – Mod an/aus [restart]
+enabled=true
+
+# Menu language: auto (= Windows language), en, de – Sprache des Menüs
+language=auto
+
+# Keys: menuKey opens the settings menu, autoLootKey switches auto loot on/off (none = no key).
+# F1-F24, Insert, Home, End, PageUp, PageDown, Delete, Pause, ScrollLock, Numpad0-Numpad9.
+# Change them if another mod uses the same key (ShroudForge: F9). Takes effect after a restart.
+# Tasten: menuKey öffnet das Menü, autoLootKey schaltet Auto-Loot an/aus (none = keine Taste).
+# Ändern, wenn eine andere Mod dieselbe Taste nutzt (ShroudForge: F9). Gilt nach einem Neustart.
+menuKey=F8
+autoLootKey=F9
+
+# ---------------------------------------------------------------------------
+# Looting – Einsammeln
+# ---------------------------------------------------------------------------
+
+# Loot automatically without holding E – automatisch einsammeln, ohne E zu halten
+autoLoot=true
+
+# Radius in meters (1–50) for looting and smashing. Looting changes at once, smashing the next time
+# the world is loaded (main menu, load the world).
+# Radius in Metern (1–50) für Einsammeln und Zerschlagen. Einsammeln ändert sich sofort, Zerschlagen
+# ab dem nächsten Laden der Welt (Hauptmenü, Welt laden).
+radiusMeters=15
+
+# Loot everything in the radius directly instead of pulling it in. Needed for things that
+# cannot fly to you (mushrooms, fireflies).
+# Alles im Radius direkt einsammeln statt heranzuziehen (nötig für Pilze, Glühwürmchen).
+instantLoot=true
+
+# Only loot what you can see (game default). false = also behind leaves and walls.
+# Nur einsammeln, was du sehen kannst. false = auch hinter Blättern und Wänden.
+requireLineOfSight=false
+
+# The group switches below change at once (the mod decides per target while you play).
+# Die Gruppen-Schalter wirken sofort (die Mod entscheidet je Ziel im Spiel).
+
+# Ground loot: everything that grows or lies in the wild (stones, branches, wood, ore, mushrooms,
+# berries on the ground, potions, ammo, drops). false = stays there, also when holding E;
+# picking up one by one with E still works.
+# Bodenbeute: alles, was im Wald wächst oder liegt (Steine, Äste, Holz, Erz, Pilze, Beeren am Boden,
+# Tränke, Munition, Drops). false = bleibt liegen, auch beim Halten von E.
+collectGroundLoot=true
+
+# Stones on the ground and stone piles. false = they stay there, and rock boulders are no longer
+# smashed. Flint is not included.
+# Steine am Boden und Steinhaufen. false = bleiben liegen, und Gesteinsbrocken werden nicht mehr
+# zerschlagen. Feuerstein zählt nicht dazu.
+collectStones=true
+
+# Collectibles: fossils, urns, gnomes, meteorites, mosaics, color palettes, event items
+# Sammelstücke: Fossilien, Urnen, Gnome, Meteoriten, Mosaike, Farbpaletten, Event-Gegenstände
+collectCollectibles=true
+
+# Bushes and plants (harvested from living plants): berry bushes, herbs, plant fiber, reeds, fireflies
+# Büsche und Pflanzen (an lebenden Pflanzen geerntet): Beerenbüsche, Kräuter, Fasern, Schilf, Glühwürmchen
+collectPlants=true
+
+# Harvest ripe crops (no seedlings), also inside your base
+# Reife Beete ernten (keine Setzlinge), auch in deiner Basis
+collectFarmPlants=true
+
+# Catch fish: fish in the water within the radius are picked up automatically. false = they stay.
+# Fische fangen: Fische im Wasser im Radius werden automatisch eingesammelt. false = sie bleiben im Wasser.
+collectFish=false
+
+# Radius per group in meters (0 = the general radius above). May also be larger than the general
+# radius, e.g. radiusMeters=5 with radiusCorpses=50. Changes at once.
+# Radius je Gruppe in Metern (0 = der allgemeine Radius oben). Darf auch größer sein als der
+# allgemeine Radius, z. B. radiusMeters=5 mit radiusCorpses=50. Wirkt sofort.
+radiusGround=0
+radiusCollectibles=0
+radiusPlants=0
+radiusFarm=0
+radiusCorpses=0
+radiusChests=0
+
+# Pause while an enemy is closer than enemyRadius meters (no shroud cores in the middle of a fight).
+# Two seconds after the last enemy it continues. Changes at once.
+# Pause, solange ein Gegner näher als enemyRadius Meter ist (keine Nebelkerne mitten im Kampf).
+# Zwei Sekunden nach dem letzten Gegner geht es weiter. Wirkt sofort.
+pauseNearEnemies=false
+enemyRadius=10
+
+# Ignore items: parts of item names (internal, English or German), separated by commas, case does
+# not matter, e.g. ignoreItems=stone,twigs or ignoreItems=Stein,Äste. Matching items stay on the
+# ground and in chests and corpses; bushes and beds that yield one are not harvested at all.
+# Picking them up with E still works. "=name" matches
+# exactly this name only. The F8 menu shows suggestions from the third letter. All names are listed
+# in items.txt in this folder. Empty = off. Changes at once.
+# Gegenstände ignorieren: Namensteile (intern, englisch oder deutsch), durch Komma getrennt, z. B.
+# ignoreItems=Stein,Äste. Passende Gegenstände bleiben am Boden und in Truhen und Leichen;
+# Büsche und Beete mit so einem Gegenstand werden gar nicht geerntet. Mit E geht es weiter. "=name" = nur genau dieser Name. Das F8-Menü macht ab dem dritten
+# Buchstaben Vorschläge. Alle Namen stehen in items.txt. Leer = aus.
+ignoreItems=
+
+# Short notice "left behind: ..." when an ignored item stays behind (at most three times per item
+# and game session). false = no notice, the list still works. Changes at once.
+# Kurze Einblendung "liegen gelassen: ...", wenn ein ignorierter Gegenstand liegen bleibt (höchstens
+# dreimal je Gegenstand und Spielsitzung). false = keine Einblendung, die Liste wirkt trotzdem. Wirkt sofort.
+ignoreNotice=true
+
+# ---------------------------------------------------------------------------
+# Plundering – Plündern
+# ---------------------------------------------------------------------------
+
+# Loot enemy corpses, also what enemies drop (critter parts, bones, bat fur). Changes at once.
+# Gegnerleichen plündern, auch was Gegner fallen lassen (Tierteile, Knochen, Fledermausfell). Wirkt sofort.
+lootEnemyCorpses=true
+
+# Loot the corpses of bosses, mini bosses (with a health bar) and elite enemies automatically.
+# false = they stay and you loot them with E. Since 1.1.0 their bonus loot (jewels, runes, boss
+# equipment) comes along completely (see lootDelay). Changes at once.
+# Leichen von Bossen, Minibossen (mit Lebensbalken) und Elite-Gegnern automatisch leeren. false = sie
+# bleiben liegen, du plünderst sie selbst mit E. Seit 1.1.0 kommt ihre Bonus-Beute (Juwelen, Runen,
+# Boss-Ausrüstung) vollständig mit (siehe lootDelay). Wirkt sofort.
+lootBosses=true
+
+# Seconds a fresh corpse, chest or plant waits after it was first seen before the mod opens it (0-5,
+# tenths allowed, e.g. 0.5).
+# The game generates special loot (ectoplasm in the Hollow Halls, jewels and runes of elites, boss and
+# quest items) only when the target is opened; opened too early, that loot was lost (fix by faytleingod84).
+# 0 = at once, as in 1.0.3 (not recommended). Opening and emptying never happen in the same frame. Changes at once.
+# Sekunden, die eine frische Leiche, Truhe oder Pflanze nach dem ersten Erfassen wartet, bevor die Mod sie
+# öffnet (0-5, auch Zehntel, z. B. 0.5). Das Spiel erzeugt Sonderbeute (Ektoplasma, Elite-Juwelen und -Runen, Boss- und Questgegenstände)
+# erst beim Öffnen; zu früh geöffnet ging sie verloren. 0 = sofort wie 1.0.3 (nicht empfohlen). Wirkt sofort.
+lootDelay=1
+
+# Empty world chests, sarcophagi, cupboards, shelves, trash and tool heaps. Quest items stay inside
+# (list in quest_items.txt). Locked chests and your own storage chests are never touched. Changes at once.
+# Welt-Truhen, Sarkophage, Schränke, Regale, Müll- und Werkzeughaufen leeren. Questgegenstände bleiben drin.
+# Verschlossene Truhen und deine eigenen Lagertruhen werden nie angefasst.
+lootChests=true
+
+# Leave quest items (list in quest_items.txt) in chests and corpses for you to take with E.
+# false = they are collected too. Changes at once.
+# Questgegenstände (Liste in quest_items.txt) in Truhen und Leichen liegen lassen, du holst sie selbst mit E.
+# false = sie werden mit eingesammelt. Wirkt sofort.
+keepQuestItems=true
+
+# ---------------------------------------------------------------------------
+# Smashing – Zerschlagen
+# ---------------------------------------------------------------------------
+
+# Smash barrels, crates, baskets, vases, urns and broken furniture in ruins within the radius
+# (once per second). Never inside a base. Spawners, nests, doors, climbing
+# and puzzle objects are never hit. Takes effect the next time the world is loaded.
+# Fässer, Kisten, Körbe, Vasen, Urnen und kaputte Möbel in Ruinen zerschlagen. Nie in einer
+# Basis. Spawner, Nester, Türen, Kletter- und Rätselobjekte nie. Gilt ab dem
+# nächsten Laden der Welt.
+autoSmash=true
+
+# Also smash barrels, cloth bales, tables etc. that can be built by players – only when the game
+# does not see you near a build zone (a buffer around your base). Takes effect the next time the
+# world is loaded.
+# Auch baubare Fässer, Stoffballen, Tische usw. zerschlagen – nur wenn das Spiel dich nicht nahe
+# einem Baubereich sieht (Puffer um deine Basis). Gilt ab dem nächsten Laden der Welt.
+smashBuildableAwayFromBase=true
+
+# Fell trees (EXPERIMENTAL): all trees, stumps, fallen trunks and deadwood within the radius fall at
+# once, also right when you leave your base; the mod picks up wood, resin and twigs. Felled trees may
+# not grow back - try it in a test world or back up your save first. Never inside a base or near a
+# build zone, never harvest trees. Bee hives on trees fall too. A hotkey is planned. Needs autoSmash.
+# Takes effect after restarting the game.
+# Bäume fällen (EXPERIMENTELL): Alle Bäume, Stümpfe, umgestürzten Stämme und das Totholz im Radius
+# fallen sofort, auch gleich beim Verlassen der Basis; Holz, Harz und Äste sammelt die Mod ein.
+# Gefällte Bäume wachsen vielleicht nicht nach - erst in einer Testwelt ausprobieren oder den
+# Spielstand sichern. Nie in der Basis oder nahe einem Baubereich, nie Ernte-Bäume. Bienenstöcke an
+# Bäumen fallen mit. Eine eigene Taste ist geplant. Braucht autoSmash. Gilt nach einem Neustart.
+smashTrees=false
+
+# Smash bee hives: wild bee hives within the radius are smashed, the mod picks up the honey.
+# Careful: wasps come out of some hives. Never in your base. Needs autoSmash. Takes effect after
+# restarting the game.
+# Bienenstöcke zerschlagen: Wilde Bienenstöcke im Radius werden zerschlagen, den Honig sammelt die
+# Mod ein. Achtung: Aus manchen Stöcken kommen Wespen. In der Basis nie. Braucht autoSmash. Gilt
+# nach einem Neustart.
+smashBeehives=false
+
+# ---------------------------------------------------------------------------
+# Inventory – Inventar
+# ---------------------------------------------------------------------------
+
+# Maximum stack size for stackable items (wood, stone, plants, ammo ...). 0 = game default.
+# Highest value 65535. Single items like weapons stay single. Changes at once. Lowering it: stacks
+# above the new size stay until you split them; the next time the save is loaded they are cut down.
+# Maximale Stapelgröße. 0 = Spiel-Standard. Einzelstücke wie Waffen bleiben einzeln. Wirkt sofort.
+# Verkleinern: größere Stapel bleiben, bis sie geteilt werden; beim nächsten Laden werden sie gekürzt.
+stackSize=9999
+
+# CHEAT: every backpack recipe gives the best backpack and costs only 1 of each ingredient.
+# Craft it once, then switch back to false. [restart]
+# SCHUMMELN: Jedes Rucksack-Rezept liefert den besten Rucksack für je 1 Zutat.
+cheatBestBackpack=false
+
+# ---------------------------------------------------------------------------
+# Troubleshooting – Fehlersuche
+# ---------------------------------------------------------------------------
+
+# Old pickup zones (up to 1.0.0): they collect ground loot and collectibles on their own, also
+# with auto loot off. Only switch on if something is no longer picked up. [restart]
+# Alte Einsammel-Bereiche (bis 1.0.0): sammeln Bodenbeute und Sammelstücke selbstständig ein,
+# auch wenn "Automatisch einsammeln" aus ist. Nur einschalten, wenn etwas nicht mehr eingesammelt wird.
+touchZones=false
+
+# Live smashing and stack size: the DLL finds the loaded data in memory and changes it in place.
+# false = off; "Auto smash", "Also smash buildable furniture", "Stones" (rock boulders) and the
+# stack size then take effect after a restart only. [restart]
+# Zerschlagen und Stapelgröße live: Die DLL ändert die geladenen Daten im Speicher. false = aus;
+# die genannten Schalter gelten dann erst nach einem Neustart.
+liveData=true
+
+# Write loot counters to auto-loot-plus.log every 5 seconds (game folder)
+# Zähler alle 5 Sekunden in auto-loot-plus.log schreiben (Spielordner)
+debugLog=false

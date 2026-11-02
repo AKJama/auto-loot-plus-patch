@@ -1,0 +1,101 @@
+label_0:
+iconst Root::entityId
+ecall 3831000001 GetParent
+pop
+iconst Root::entityId
+iconst Root::position
+iconst Root::transform
+ecall 3831000002 GetTransform
+pop
+iconst Root::entityId
+iconst InSafeZone::state
+ecall 3831000017 IsInState
+brt label_base
+iconst0
+gstore PropLoop::index
+label_1:
+iconst Range::value
+iconst Root::transform
+iconst PropLoop::faction
+iconst PropLoop::index
+iconst0
+iconst PropLoop::entityId
+ecall 3831000003 ForEachEntityWithFactionInRange
+brt label_4
+label_wait:
+gload WaitDuration::value
+ltime
+iadd
+label_2:
+dup
+ltime
+ileq
+brt label_3
+rvm
+br label_2
+label_3:
+pop
+rvm
+br label_0
+halt
+label_base:
+br label_wait
+halt
+label_4:
+iconst StoneTag::value
+iconst PropLoop::entityId
+ecall 3831000020 HasEntityTag
+brt label_1
+iconst SmashTag::value
+iconst PropLoop::entityId
+ecall 3831000013 HasEntityTag
+brt label_5
+iconst SharedTag::value
+iconst PropLoop::entityId
+ecall 3831000016 HasEntityTag
+brt label_shared
+iconst TreeTag::value
+iconst PropLoop::entityId
+ecall 3831000021 HasEntityTag
+brt label_shared
+br label_1
+label_shared:
+iconst Root::entityId
+iconst NearBuildZone::state
+ecall 3831000018 IsInState
+brt label_1
+label_5:
+iconst PropLoop::entityId
+iconst Target::position
+iconst0
+ecall 3831000004 GetTransform
+pop
+iconst0
+iconst0
+iconst0
+iconst0
+iconst0
+iconst0
+iconst0
+iconst0
+iconst WeaponCategory::value
+iconst0
+iconst Smash::damageSetup
+iconst HitReaction::value
+iconst Pushback::value
+iconst0
+iconst0
+iconst0
+iconst0
+iconst0
+iconst0
+iconst HitDirection::value
+iconst HitNormal::value
+iconst Target::position
+iconst PropLoop::entityId
+iconst Root::entityId
+iconst0
+ecall 3831000005 ApplyDamage
+pop
+br label_1
+halt

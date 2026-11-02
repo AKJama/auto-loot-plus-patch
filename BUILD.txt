@@ -1,0 +1,24 @@
+Auto Loot Plus 1.1.8 - build notes
+
+Native part (dinput8.dll)
+  Compiler: MSVC x64 (Visual Studio Build Tools). Open an "x64 Native Tools Command Prompt", then:
+    cd native
+    mkdir build
+    cd build
+    cl /nologo /O2 /MT /EHsc /std:c++17 /W3 /utf-8 /DNDEBUG /DIMGUI_IMPL_VULKAN_NO_PROTOTYPES
+       /I..\third_party\imgui /I..\third_party\vulkan /LD
+       ..\main.cpp ..\overlay.cpp
+       ..\third_party\imgui\imgui.cpp ..\third_party\imgui\imgui_draw.cpp
+       ..\third_party\imgui\imgui_tables.cpp ..\third_party\imgui\imgui_widgets.cpp
+       ..\third_party\imgui\backends\imgui_impl_vulkan.cpp
+       /link /DEF:..\exports.def /OUT:dinput8.dll kernel32.lib user32.lib
+    (one line)
+
+  Third-party sources needed in native\third_party (not included):
+    imgui\   Dear ImGui v1.91.9b (imgui*.cpp/h, imstb_*.h, backends\imgui_impl_vulkan.*)
+    vulkan\  Vulkan-Headers v1.4.309 (include\vulkan, include\vk_video)
+
+Auto smash program (Lua table in mod\auto-loot-plus\src\autosmash_program.lua)
+  python impact\build_program.py
+  kfc-parser.exe impact assemble -i impact\autosmash -o <guid>_d4922d88_0.json
+  python impact\to_lua.py <json> mod\auto-loot-plus\src\autosmash_program.lua
