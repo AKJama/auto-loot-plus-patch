@@ -1,0 +1,2 @@
+# Keep every file byte for byte as committed (the original source is LF; build.cmd is CRLF).
+* -text
