@@ -28,6 +28,8 @@ Start the game and open `auto-loot-plus.log` in the game folder.
 It should say "native 1.1.8-fix2" and then "Patches angewendet".
 On any other game version it changes nothing and the log says why.
 
+Tested on Enshrouded 1.0.1.0 (2 November 2026, exe build stamp `6ae4601e`) and on the update of 4 November 2026 (Steam build 26430625, exe build stamp `6aeb144c`), which needed no change.
+
 ## Linux / Steam Deck
 
 Under Proton, Steam uses its own built-in `dinput8.dll` and `dbghelp.dll` and ignores the ones in the game folder, so the mod never starts and no `auto-loot-plus.log` appears.
@@ -71,6 +73,11 @@ The later commits add the fixes, the build and this README; each commit message 
 
 - 1.1.8-fix2: looting works under Linux / Proton; the window pause trusts the mouse cursor only once the game has recentered it, plus the `windowCheck` setting (cause found by a Linux player on the Nexus page).
 - 1.1.8-fix1: works with Enshrouded 1.0.1.0 (new code patterns, offsets read from the game code).
+
+## Maintaining
+
+After a game update, `python tools/check_exe.py` checks every pattern against the installed exe without starting the game.
+How to fix, build and release is in `MAINTAINING.md`.
 
 ## Licence
 

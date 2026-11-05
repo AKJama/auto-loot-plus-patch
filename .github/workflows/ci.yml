@@ -16,3 +16,5 @@ jobs:
       - name: Build dinput8.dll
         shell: cmd
         run: build.cmd
+      - name: Check script reads main.cpp
+        run: python tools/check_exe.py --parse-only
