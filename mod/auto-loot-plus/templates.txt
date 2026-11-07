@@ -1110,11 +1110,7 @@ ee25a337-14af-449d-b795-260ea7f0c7d1	ground		Prop_Furniture_Book_Pile_04_D_Lootp
 c2679905-10dc-4ff7-9450-1f5693d597fc	ground		Scatter_Loot_cave_mushroom_02b	1304815894
 2597a1bd-4f96-4795-b03e-7a516024b965	ground		Scatter_Loot_cave_mushroom_03a	1304815894
 46fa12bd-8af2-4259-98d5-8ab07a536517	ground		Scatter_Loot_cave_mushroom_03b	1304815894
-06855b26-c1cb-4b3c-aea0-e55185a5f9da	ground		Scatter_Loot_coldheights_Pumpkin_01a	
-c5e04a55-b829-4993-bed5-f74ab5e7c00a	ground		Scatter_Loot_coldheights_Pumpkin_01b	4234426543
 77064f89-8829-4d24-8838-2ae1e20aae3a	ground		Scatter_Loot_coldheights_Pumpkin_01c	4234426543
-84dc1d59-3943-4b57-bb78-136a5632f183	ground		Scatter_Loot_coldheights_yellow_fog_mushroom_01a	
-24207065-8632-43af-8f4f-8b2b7f7bf10c	ground		Scatter_Loot_coldheights_yellow_fog_mushroom_01b	1683685602
 1c7b1836-bcce-44be-9633-be1a12ca4d07	ground		Scatter_Loot_coldheights_yellow_fog_mushroom_01c	1683685602
 5fcf7106-c3b5-415a-aeaa-7bb2be794a0a	ground		Scatter_Loot_greenhillzone_mushroom_01b	
 694dae75-1327-45bd-9123-a9a76515cdf9	ground		Scatter_Loot_greenhillzone_mushroom_01c	600862405
@@ -1224,7 +1220,6 @@ c4d17d30-6a67-4d97-9cab-94a751d53fb3	plant		Scatter_Loot_DeepWoods_Beets_c_Harve
 de2975cb-02ba-4d5c-89ed-3bf334e59548	plant		Scatter_Loot_DeepWoods_Chamomille_c_Harvest	3478847834
 1e3480f9-1b71-4199-924b-1895f486e855	plant		Scatter_Loot_DeepWoods_Chamomille_d_driedUp	3316218728
 fd47aff6-3e3e-4bb1-bc32-50c624228133	plant		Scatter_Loot_DeepWoods_Flax_c_Harvest	3898847112
-4fc9d735-f4d3-4ebb-bc27-1339de44dedc	plant		Scatter_Loot_DeepWoods_Hazelnut_a_noharvest_InstantLoot	1798662696
 e54941af-0160-4114-be4a-09c07f29888c	plant		Scatter_Loot_DeepWoods_Hazelnut_d_nuts_harvest	3360608010
 bdeb3dd0-e1a0-4f89-afb6-49d0e7ad7685	plant		Scatter_Loot_DeepWoods_Indigo_c	4276529065
 39889010-c372-449a-9e3a-b80d10184b5f	plant		Scatter_Loot_DeepWoods_Indigo_d	3316218728
@@ -1255,8 +1250,6 @@ bbdd758c-0c31-4a0a-b928-ed3d906ad090	plant		Scatter_Loot_Desert_Bush_Abal_Twigs_
 dff95825-758f-466e-a037-7de213331869	plant		Scatter_Loot_Desert_DevilsClaw_c_Harvest	2065473526
 5add74b2-06c0-4359-8d35-d070621e7842	plant		Scatter_Loot_Desert_Saffron_01_c_Harvest	3696168941
 363cfb51-81fe-4e17-ad46-63eeaac0f97d	plant		Scatter_Loot_Desert_Saffron_01_d_driedUp	3316218728
-8bee0f6a-a04e-4506-9e91-71cb20bb1049	plant		Scatter_Loot_Grassland_Above_Bush_04_b	1798662696
-02245874-fb76-4ea3-affa-baff42bb19a3	plant		Scatter_Loot_Grassland_Above_Bush_04_blooming_c	1798662696
 fcd7da21-fd31-4b7a-b8c6-622b4831c3ad	plant		Scatter_Loot_Grassland_Above_Bush_04_blooming_d	1798662696,3316218728
 5a4e2c03-cd09-4412-a088-e0f4456729a2	plant		Scatter_Loot_Grassland_Above_Bush_04_c	1798662696
 67b13e1c-b39a-463b-b3dc-d405c9922c0a	plant		Scatter_Loot_Grassland_Above_Bush_04_d	1798662696,3316218728
@@ -1276,18 +1269,11 @@ fd6ec950-b62d-4bce-a45a-acf223496d23	plant		Scatter_Loot_Grassland_Below_Plant_0
 95c83224-bf64-451b-ae58-8760f62d4cb8	plant		Scatter_Loot_Grassland_Below_Plant_05_e	860644516
 950855a7-9a3d-4746-8b8e-e93ddea49a8d	plant		Scatter_Loot_Grassland_Cattails_01_a	1026141130
 3461412b-e1d9-4dfe-a0a8-61f839b3f7e4	plant		Scatter_Loot_Grassland_Cattails_01_b	1026141130
-dff9ac00-a366-4272-9f48-9900b532f899	plant		Scatter_Loot_Grassland_Cattails_01_c	1026141130
 51c92bee-5ef5-4038-bacd-46cda7a6e474	plant		Scatter_Loot_Grassland_Cattails_01_d	1026141130
-279ff3d1-1629-4f3e-b42d-2622e1d7c467	plant		Scatter_Loot_Grassland_Cattails_01_growth_a	1026141130
-20706e0a-d7a7-48ab-9720-d0c607c35ecc	plant		Scatter_Loot_Grassland_Cattails_01_growth_b	1026141130
-6a8bc27f-36d7-4672-9392-6e23408ad706	plant		Scatter_Loot_Grassland_Cattails_01_growth_c	1026141130
 9b9c4377-04c1-4fb2-b4ee-b0ca5b5951e1	plant		Scatter_Loot_Grassland_Reed_01_a	1026141130
 87fa6fc7-28fb-4c08-95cd-f9eb0847e300	plant		Scatter_Loot_Grassland_Reed_01_b	1026141130
 9c8f6c46-5f07-4c88-afda-9522883e4c32	plant		Scatter_Loot_Grassland_Reed_01_c	1026141130
 8d5ffd76-6120-472d-8d25-6b14e51600f7	plant		Scatter_Loot_Grassland_Reed_01_d	1026141130
-88a20c5d-9fd0-44a3-8f82-91a71da7da3f	plant		Scatter_Loot_Grassland_Reed_01_growth_a	1026141130
-3ad5206a-64b6-4a53-a111-38d196b441b0	plant		Scatter_Loot_Grassland_Reed_01_growth_b	1026141130
-add0787f-b2de-4ed0-b6e3-ea9a88303f5d	plant		Scatter_Loot_Grassland_Reed_01_growth_c	1026141130
 a9132586-631c-46f6-abf1-82198a8e38c9	plant		Scatter_Loot_Grassland_Ripfern_a	3316218728
 f281fb21-5b92-4041-9c2e-6fc1ace3b1e0	plant		Scatter_Loot_Grassland_Ripfern_b	3316218728
 a2d0ad9c-8496-4f5f-a5b3-d470d778ad10	plant		Scatter_Loot_Grassland_Ripfern_c	3316218728
@@ -1307,9 +1293,6 @@ d240f4ca-952b-4a43-bf45-e6285d7a928a	plant		Scatter_Loot_steppes_Bush_01_b	17986
 76a34e54-e82b-4dbd-b46c-3fb815f7c73f	plant		Scatter_Loot_Steppes_Bush_02_Leafless_Twigs_a	1798662696
 6afb9e53-2b82-476e-8539-95f261adbcd3	plant		Scatter_Loot_Steppes_Bush_02_Leafless_Twigs_b	1798662696
 54e7dd5e-f3f1-456b-9e8a-c91005b0f24f	plant		Scatter_Loot_Steppes_Bush_02_Leafless_Twigs_c	1798662696,3316218728
-1809f33e-c22a-42ce-93ed-a45f38c73bd0	plant		Scatter_Loot_Steppes_Bush_02_Twigs_a	1798662696
-ae63097e-4f0a-4f17-8e57-4bb5beacd18f	plant		Scatter_Loot_Steppes_Bush_02_Twigs_b	1798662696
-14d5df82-92d9-4b8d-a8b2-9e4496462967	plant		Scatter_Loot_Steppes_Bush_02_Twigs_c	1798662696,3316218728
 38372bbd-92e2-418b-977d-e151df828a7c	plant		Scatter_Loot_Steppes_Pepper_01_a_Harvest	3316218728
 069ec7c7-65d7-4cf6-9c6d-9fb40e202b0b	plant		Scatter_Loot_Steppes_Pepper_01_b_Harvest	3316218728
 0c43ca6b-429c-42a6-a33b-440b33563c23	plant		Scatter_Loot_Steppes_Pepper_01_c_Harvest	4094316095
@@ -1329,8 +1312,6 @@ f5869101-1ccf-4c6c-8d14-2f6356fa9c1e	plant		Scatter_Loot_Tall_Trees_Treefern_01_
 f977a648-3621-480e-aad1-26bfd72f7eb2	plant		Scatter_Loot_Wetland_Above_Bush_04_Twigs_c	1798662696,3316218728
 95e7763e-a01e-46e3-b5b6-790bcb3693ce	plant		Scatter_Loot_Wetland_Above_Bush_04_Twigs_d	1798662696,3316218728
 3dd9b87c-a49b-4440-8daf-368754ba8f18	plant		Scatter_Loot_Wetland_Algae_01_a_Plantfibre	3316218728
-fab13bf7-9321-4b40-a461-70df6ebd3e02	plant		Scatter_Loot_Wetland_Algae_01_b_AlgaeBuds	806123624,2448218322
-4c3a3be9-23ea-439c-ad0e-29b1a55d5cf2	plant		Scatter_Loot_Wetland_Algae_01_c_AlgaeBuds	806123624,2448218322
 90da219d-e33c-4070-9f0a-63d9a86c06bc	plant		Scatter_Loot_Wetland_Algae_01_d_AlgaeBuds	806123624,2448218322
 e9f3294c-9e0b-4481-9382-5c8fa439c90d	plant		Scatter_Loot_Wetland_Below_Bush_04_Twigs_a	1798662696
 2ba77b5d-09d2-4169-83ba-e1e00ab24d45	plant		Scatter_Loot_Wetland_Below_Bush_04_Twigs_b	1798662696
@@ -1348,26 +1329,13 @@ db73389c-7033-4e54-ace5-b78502448eb6	plant		Scatter_Loot_Wetland_Bush_Monstera_d
 11cd59a3-b9bb-4d50-b2aa-83380193f2a6	plant		Scatter_Loot_Wetland_Coffee_01_d_Harvest_UNUSED_DO_NOT_PLACE	397030700
 a217d86d-0c37-46c6-9b00-a30fc2c29411	plant		Scatter_Loot_Wetland_Ginger_01_a	3316218728
 edaf07df-a783-4ad0-8131-b547b5abec2f	plant		Scatter_Loot_Wetland_Ginger_01_b	3316218728
-af2a4eb2-90bc-4d2d-8127-e19a9a853c6d	plant		Scatter_Loot_Wetland_Ginger_01_c_Harvest	814096701,3316218728
 9d9913e1-08b1-4948-962a-f7298829b1aa	plant		Scatter_Loot_Wetland_Ginger_01_d_Harvest	814096701
-cacf1ce5-16c5-4d76-84e7-c80998119a89	plant		Scatter_Loot_Wetland_OrangeDaylily_01_a	1897605064
-107dbccb-d42f-40db-b232-c75c744a4ed5	plant		Scatter_Loot_Wetland_OrangeDaylily_01_b	1897605064
 3856d7c4-a5ce-4bdf-84fa-a501daf0e037	plant		Scatter_Loot_Wetland_OrangeDaylily_01_c	1897605064
-1095ab63-bf00-4baf-97bd-451cc746dc10	plant		Scatter_Loot_Wetland_Papyrus_01_01_a_1	1026141130
-cc6b6d0d-5e23-43ab-8c0f-10fbf918cb17	plant		Scatter_Loot_Wetland_Papyrus_01_01_a_2	1026141130
 0c57d94d-0106-4e8b-b7d2-ebe9976ad4d6	plant		Scatter_Loot_Wetland_Papyrus_01_a	1026141130
 0d3726cf-217d-4a10-9111-572e6c00e50a	plant		Scatter_Loot_Wetland_Papyrus_01_b	1026141130
 3770e2a7-a967-43da-badf-e5157134176c	plant		Scatter_Loot_Wetland_Papyrus_01_c	1026141130
 9e078543-311c-4a61-81d4-4eb174727047	plant		Scatter_Loot_Wetland_Rice_harvest_base	2374813707
-bc6e4d1f-be3b-4e4a-94a6-d19cc14245d7	plant		Scatter_Loot_Wetland_Shiitake_01_a	3354704185
-f08cc1ea-a4eb-4faa-9284-5aa6e28b15a7	plant		Scatter_Loot_Wetland_Shiitake_01_b	3354704185
-6ee47524-59c4-4246-bef4-f042ee674efb	plant		Scatter_Loot_Wetland_Shiitake_01_c	3354704185
 7416a3cd-7b25-4fa3-abb9-e38b288bbb6f	plant		Scatter_Loot_Wetland_Shiitake_01_d	3354704185
-1fdd571d-ca42-424a-a2d4-2f93dea937bd	plant		Scatter_Loot_Wetland_Taro_a_Harvest	2417552370
-4eabad21-60d6-49e0-adf7-963b48c81a94	plant		Scatter_Loot_Wetland_Taro_b_Harvest	2417552370
-43e526dc-d3ff-4d45-a7bb-9a5f08b137ea	plant		Scatter_Loot_Wetland_Taro_c_Harvest	2417552370
 87e42bfd-4e16-4101-876c-8153cab94995	plant		Scatter_Loot_Wetland_Taro_d_Harvest	2417552370
 c8df2566-a4f0-421c-abe2-d3a977229e92	plant		Scatter_Loot_Wetlands_Bananaplant_a_noharvest_InstantLoot	1798662696
-645a2cda-9814-4fe4-9f0c-ff0df39e1873	plant		Scatter_Loot_Wetlands_Coffeetree_a_noharvest_InstantLoot	1798662696
-a506af99-5a55-4f35-b86c-47439ef21d71	plant		Scatter_Loot_Wetlands_Coffeetree_b_noharvest_InstantLoot	1798662696
 f4d85a6e-d494-4ab5-9db8-2df115cfc8ee	plant		Scatter_Loot_Wetlands_CoffeeTree_d_fruits_harvest	397030700

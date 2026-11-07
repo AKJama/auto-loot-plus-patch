@@ -18,3 +18,5 @@ jobs:
         run: build.cmd
       - name: Check script reads main.cpp
         run: python tools/check_exe.py --parse-only
+      - name: No unripe growth stage in templates.txt
+        run: python tools/growth_stages.py

@@ -7,7 +7,7 @@
 -- Questgegenstände, Tiere, abgelegte Köder, geworfene Fackeln und eigene Truhen bleiben unverändert.
 
 local TAG = "[Auto Loot Plus]"
-local VERSION = "1.1.8"
+local VERSION = "1.1.8-fix3"   -- unofficial patch (AKJama/auto-loot-plus-patch); the original is 1.1.8
 local NULL_GUID = "00000000-0000-0000-0000-000000000000"
 
 ---------------------------------------------------------------------------
@@ -226,6 +226,27 @@ end
 
 local templates = game.assets.get_resources_by_type("keen::ecs::TemplateResource")
 
+-- 1.1.8-fix3: unripe growth stages of planted crops are never looted automatically.
+-- A planted seedling (a template with keen::ecs::Growth) turns into the template of each of its
+-- keen::ecs::Upgrade levels in turn; only the last level is the ripe plant. Many middle levels are
+-- wild-plant templates that ALP releases as bushes or ground loot, so the magnet harvested young
+-- crops and destroyed them (DestroyOnLoot): a planted hazelnut's second level is the twig bush
+-- Scatter_Loot_DeepWoods_Hazelnut_a_noharvest_InstantLoot, which gave twigs and left an empty bed
+-- (also coffee, elderberry, pumpkin, shiitake, taro, ginger, reed, cattail ...). Every middle level
+-- is excluded from the magnet below, like boss loot, also where the same template grows wild;
+-- pressing E on it still works. templates.txt leaves them out too (tools/growth_stages.py).
+local unripeStages = {}
+for _, resource in ipairs(templates) do
+    local components = field(resource.data, "components")
+    if components and findComponent(components, "keen::ecs::Growth") then
+        local _, upgrade = findComponent(components, "keen::ecs::Upgrade")
+        local levels = upgrade and field(upgrade, "levels") or {}
+        for index, level in ipairs(levels) do
+            if index < #levels then unripeStages[tostring(field(level, "upgradeEntity"))] = true end
+        end
+    end
+end
+
 local blueprint = {}
 for _, resource in ipairs(templates) do
     if field(resource.data, "name") == "Base_LootTouch_Orb" then
@@ -338,6 +359,8 @@ for _, resource in ipairs(templates) do
     local components = field(data, "components")
     if components then
         local category, reason = classify(name, components)
+        -- fix3: unripe growth stage, excluded in the loot-all pass below
+        if unripeStages[tostring(resource.guid)] then category, reason = nil, "Wachstumsstufe" end
         if not category and genericRefs[tostring(resource.guid)] and reason == "kein Pickup" and
            findComponent(components, T.destroyOnLoot) then
             local blocked = hasRealDefaultInventory(components)
@@ -472,9 +495,14 @@ for _, resource in ipairs(templates) do
     local category = components and lootAllCategory(name, tostring(field(data, "family")), components)
     -- Boss-Beute nie automatisch (Schlüssel und Quest-Fortschritt hängen am Plündern per Hand): sperren
     if category and lower(name):find("boss") then category = "boss" end
-    if category == "boss" then
+    -- fix3: unripe growth stages are blocked like boss loot (also for the item pass below)
+    if components and unripeStages[tostring(resource.guid)] then category = "unripe" end
+    if category == "boss" or category == "unripe" then
         -- nie automatisch: sperren, damit die grobe Suche das Objekt nicht als Nachbarn mitnimmt
-        excludeFromAreaLoot(components)
+        -- (fix3: unripe stages only when they can be looted at all, so young trees stay untouched)
+        if category == "boss" or findComponent(components, T.areaLoot) or findComponent(components, T.interactionRuntime) then
+            excludeFromAreaLoot(components)
+        end
         handled[tostring(resource.guid)] = true
         lootAllBlocked[tostring(resource.guid)] = true
         stats.targetsOff = stats.targetsOff + 1

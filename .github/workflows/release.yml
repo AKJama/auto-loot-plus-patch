@@ -24,19 +24,25 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
           Copy-Item build/dinput8.dll dist
+          # Since fix3 the mod's Lua and template list change too (players put them into mods/auto-loot-plus/)
+          Copy-Item mod/auto-loot-plus/src/mod.lua dist
+          Copy-Item mod/auto-loot-plus/templates.txt dist
           Copy-Item LICENSE.txt dist/AutoLootPlus-LICENSE.txt
           Copy-Item native/third_party/imgui/LICENSE.txt dist/DearImGui-LICENSE.txt
           Copy-Item native/third_party/vulkan/LICENSE.md dist/Vulkan-Headers-LICENSE.md
           Push-Location dist
           # Unix line ends, so `sha256sum -c SHA256SUMS.txt` reads it on any system
-          $sums = Get-ChildItem dinput8.dll |
+          $sums = Get-ChildItem dinput8.dll, mod.lua, templates.txt |
             ForEach-Object { "{0}  {1}`n" -f (Get-FileHash $_ -Algorithm SHA256).Hash.ToLower(), $_.Name }
           [IO.File]::WriteAllText("$PWD/SHA256SUMS.txt", -join $sums)
           Get-Content SHA256SUMS.txt
           Pop-Location
       - uses: actions/attest-build-provenance@v4
         with:
-          subject-path: dist/dinput8.dll
+          subject-path: |
+            dist/dinput8.dll
+            dist/mod.lua
+            dist/templates.txt
       - name: Draft release
         shell: pwsh
         env:
@@ -44,4 +50,4 @@ jobs:
         run: |
           gh release create "${{ github.ref_name }}" --draft --title "Auto Loot Plus ${{ github.ref_name }} (unofficial patch)" `
             --notes "Built by GitHub Actions from this tag. Check the SHA-256 in SHA256SUMS.txt, or run: gh attestation verify dinput8.dll --repo ${{ github.repository }}" `
-            dist/dinput8.dll dist/SHA256SUMS.txt dist/AutoLootPlus-LICENSE.txt dist/DearImGui-LICENSE.txt dist/Vulkan-Headers-LICENSE.md
+            dist/dinput8.dll dist/mod.lua dist/templates.txt dist/SHA256SUMS.txt dist/AutoLootPlus-LICENSE.txt dist/DearImGui-LICENSE.txt dist/Vulkan-Headers-LICENSE.md

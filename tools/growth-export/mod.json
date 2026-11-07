@@ -1,0 +1,1 @@
+{"id":"growth-export","name":"growth stage export","version":"0.1.0","authors":["AKJama"],"description":"Writes every growth chain (planted seedlings) to growth-stages.tsv. Export mode only.","capabilities":["export"]}
