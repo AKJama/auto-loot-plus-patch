@@ -1221,6 +1221,7 @@ de2975cb-02ba-4d5c-89ed-3bf334e59548	plant		Scatter_Loot_DeepWoods_Chamomille_c_
 1e3480f9-1b71-4199-924b-1895f486e855	plant		Scatter_Loot_DeepWoods_Chamomille_d_driedUp	3316218728
 fd47aff6-3e3e-4bb1-bc32-50c624228133	plant		Scatter_Loot_DeepWoods_Flax_c_Harvest	3898847112
 e54941af-0160-4114-be4a-09c07f29888c	plant		Scatter_Loot_DeepWoods_Hazelnut_d_nuts_harvest	3360608010
+f47fa06b-7320-443f-9c54-0917aafc9387	plant		Scatter_Loot_DeepWoods_Hazelnut_d_nuts_harvest_Playerplanted_Refill	3360608010
 bdeb3dd0-e1a0-4f89-afb6-49d0e7ad7685	plant		Scatter_Loot_DeepWoods_Indigo_c	4276529065
 39889010-c372-449a-9e3a-b80d10184b5f	plant		Scatter_Loot_DeepWoods_Indigo_d	3316218728
 7d94c28b-978e-47dd-9cb7-1fb65e16df4b	plant		Scatter_Loot_DeepWoods_Nettle_b	2290894589
@@ -1232,6 +1233,7 @@ dbc014c9-6a90-4832-824a-c9a06bd4e1e0	plant		Scatter_Loot_DeepWoods_Strawberries_
 51c74792-7de5-4201-a31c-b921e39493d2	plant		Scatter_Loot_DeepWoods_Wormfern_b	3316218728
 d66b598f-6eb8-48b7-b624-c44f66ff25d8	plant		Scatter_Loot_DeepWoods_Wormfern_c	3316218728
 07260abb-042e-4080-8c78-378918e7a930	plant		Scatter_Loot_DeepWoods_Wormfern_d	3316218728
+133919d1-e838-4fbc-b2dc-6d3dafefd21f	plant		Scatter_Loot_Desert_Above_Datepalm_01_e_fruits_harvest_PlayerPlanted_Refill	4231900495
 c495dca3-e157-410d-b221-6541ae2261c0	plant		Scatter_Loot_Desert_Below_Plant_01_a_InstantLoot	4091795277
 91081a22-b769-4a88-97f3-fee007e3fd09	plant		Scatter_Loot_Desert_Below_Plant_01_b_InstantLoot	4091795277
 71ad7c8f-0a09-4e91-b075-34f7bf836856	plant		Scatter_Loot_Desert_Below_Plant_01_c_InstantLoot	4091795277
@@ -1307,10 +1309,12 @@ cfb2a55e-df9e-48d1-b03e-56d8c93f2fe2	plant		Scatter_Loot_Steppes_Sugarcane_01_b	
 2ee202e1-1f27-497b-ab52-d9c50ec9496a	plant		Scatter_Loot_Steppes_Sugarcane_01_c_Harvest	2456844314
 0ce35926-5f8f-4673-b237-17e8cbde204d	plant		Scatter_Loot_Steppes_Sugarcane_01_d_DriedUp	3316218728
 f5869101-1ccf-4c6c-8d14-2f6356fa9c1e	plant		Scatter_Loot_Tall_Trees_Treefern_01_a_Bush	3316218728
+7105ee61-f16b-46e1-a315-dbacc971ca18	plant		Scatter_Loot_Wetland_Above_Bananaplant_01_e_fruits_harvest_PlayerPlanted_Refill	2626897582,2349456895
 66637c4a-442f-491f-ac7b-8dcab28f99f0	plant		Scatter_Loot_Wetland_Above_Bush_04_Twigs_a	1798662696
 84ff40ae-66be-466f-b266-b38e4f45dde4	plant		Scatter_Loot_Wetland_Above_Bush_04_Twigs_b	1798662696
 f977a648-3621-480e-aad1-26bfd72f7eb2	plant		Scatter_Loot_Wetland_Above_Bush_04_Twigs_c	1798662696,3316218728
 95e7763e-a01e-46e3-b5b6-790bcb3693ce	plant		Scatter_Loot_Wetland_Above_Bush_04_Twigs_d	1798662696,3316218728
+320835c4-62a8-4fbf-8f8e-76d733596e35	plant		Scatter_Loot_Wetland_Above_Coconutpalm_01_e_fruits_harvest_PlayerPlanted_Refill	83196405
 3dd9b87c-a49b-4440-8daf-368754ba8f18	plant		Scatter_Loot_Wetland_Algae_01_a_Plantfibre	3316218728
 90da219d-e33c-4070-9f0a-63d9a86c06bc	plant		Scatter_Loot_Wetland_Algae_01_d_AlgaeBuds	806123624,2448218322
 e9f3294c-9e0b-4481-9382-5c8fa439c90d	plant		Scatter_Loot_Wetland_Below_Bush_04_Twigs_a	1798662696
@@ -1327,6 +1331,7 @@ a103f696-ad68-47a4-ba72-6005d394e41d	plant		Scatter_Loot_Wetland_Below_Plant_02_
 318e065f-c2e7-4c20-b369-df00470bd542	plant		Scatter_Loot_Wetland_Bush_Monstera_c	1798662696,3316218728
 db73389c-7033-4e54-ace5-b78502448eb6	plant		Scatter_Loot_Wetland_Bush_Monstera_d	1798662696,3316218728
 11cd59a3-b9bb-4d50-b2aa-83380193f2a6	plant		Scatter_Loot_Wetland_Coffee_01_d_Harvest_UNUSED_DO_NOT_PLACE	397030700
+d23ecd82-83a9-4d01-a6a4-14adbc1e1315	plant		Scatter_Loot_Wetland_Coffeetree_d_fruits_harvest_Playerplanted_Refill	397030700
 a217d86d-0c37-46c6-9b00-a30fc2c29411	plant		Scatter_Loot_Wetland_Ginger_01_a	3316218728
 edaf07df-a783-4ad0-8131-b547b5abec2f	plant		Scatter_Loot_Wetland_Ginger_01_b	3316218728
 9d9913e1-08b1-4948-962a-f7298829b1aa	plant		Scatter_Loot_Wetland_Ginger_01_d_Harvest	814096701

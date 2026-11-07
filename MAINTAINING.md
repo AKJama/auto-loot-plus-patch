@@ -41,15 +41,25 @@ fix3 keeps every middle level away from the magnet in two places:
 - `mod.lua` finds them in the game data at every start (`unripeStages`), releases none of them and sets `AreaLootOverride.exclude = true` on those that can be looted at all; the report line is `off:unripe`.
 - `templates.txt` leaves them out, so the DLL treats them as unknown and never takes them, also without EML.
 
+The ripe last levels are the other half.
+Most are the same templates as wild plants or have their own `_harvest` template that 1.1.8 already listed (`farm` for the beds, `plant` for wetland and ancient-land crops).
+Five are new kinds of template that 1.1.8 never released: the planted hazelnut, coffee, date, banana and coconut ripen into `*_Playerplanted_Refill` templates (family `Container`, no `DefaultInventory`, `keen::ecs::InteractionLootRefill`: the plant stays and its stock refills, 6 to 12 items, one every 180 s).
+fix3 releases them as `plant` in `mod.lua` (`ripeStages`: a ripe level with `InteractionLootRefill`, an interaction offer and no `DestroyOnLoot`) and lists them in `templates.txt` as `plant` with their refill items as yield, the same group and yield as the wild hazelnut and coffee bushes.
+*Not yet checked in game*: that the magnet's accept and loot-all harvest an `InteractionLootRefill` target (1.1.8 never had one; farm animals use the same component and are not released).
+Ripe levels harvested only by hitting them with a tool (`ResourceNodePickupDrops`, no inventory or offer: trees, cactus, yucca, bamboo, licuala palm, mangrove, artichoke, cabbage, aloe, `Bush_04_blooming_f`, `Bush_02_twigs_d_axe`) are not looted by ALP, wild or planted, and stay out.
+
 `tools/growth-stages.tsv` lists every growth chain, from the offline EML export in `tools/growth-export` (same steps as for any EML export: a scratch folder with copies of `enshrouded.exe`, the original `enshrouded.kfc` (the install's `enshrouded.kfc.bak` once EML has run) and `enshrouded.kfc_resources`, the export mod in its `mods\`, then `emm run -g <scratch> --export`).
-It was the same on build 1283531 (1.0.1.0) and 1287369 (4 November 2026 update): 65 chains, 214 middle levels.
+For each stage it also says how the game harvests it (`harvest`: refill, inventory, pickup, hit or none), whether looting removes it (`destroy_on_loot`) and the refill items (`yield`).
+It was the same on build 1283531 (1.0.1.0) and 1287369 (4 November 2026 update): 65 chains, 214 middle levels, 65 ripe levels.
 
 After a game update:
 
 1. Rerun the export and copy `export\growth-stages.tsv` over `tools/growth-stages.tsv`.
-2. `python tools/growth_stages.py` must say "ok"; `--fix` removes new middle levels from `templates.txt`, `--list` prints them all.
-3. To see what `mod.lua` does with each middle level, run the export once with the original 1.1.8 mod and once with this one in the scratch `mods\` and compare the two `auto-loot-plus-report.txt`: `python tools/growth_stages.py --report before.txt after.txt`.
-   On fix3 every line ends in `off:unripe`; 39 middle levels changed from 1.1.8 (32 of them in `templates.txt`).
+2. `python tools/growth_stages.py` must say "ok"; it checks both ways: no middle level in `templates.txt`, and every ripe level harvested by an interaction (refill, inventory or pickup) in `templates.txt` or in its `EXCLUDED` list with a reason (only the deprecated Edelweiss today).
+   `--fix` removes new middle levels and adds new ripe refill levels as `plant`; any other missing ripe level fails and is added by hand, in the group of its wild counterpart.
+   `--list` prints every stage with how it is harvested.
+3. To see what `mod.lua` does with each growth stage, run the export once with the original 1.1.8 mod and once with this one in the scratch `mods\` and compare the two `auto-loot-plus-report.txt`: `python tools/growth_stages.py --report before.txt after.txt`.
+   On fix3 every middle level is `off:unripe` (39 changed from 1.1.8, 32 of them in `templates.txt`) and the five refill levels changed from `-` to `plant`; nothing else changed.
 
 Known limits:
 
@@ -73,6 +83,12 @@ Growing a crop takes real game time, so the fixture is made once by hand:
 5. Control on fix2 (original `mod.lua` and `templates.txt`): the same scenario must fail: that `Angenommen` line, Twigs in the backpack, two empty spots with a dust puff.
 
 The fixture world can also be checked by hand: walk up to a level-2 planted hazelnut with fix3 and the bush must stay.
+
+Ripe refill crops, fixture `alp-ripe-hazel`: the same world once the bushes are ripe ("Harvest", nuts showing).
+1. Scenario `alp-ripe-hazel`: `debugLog=true`, load, stand at the bed for 15 s, log out.
+2. Pass on fix3: `auto-loot-plus.log` has an `Angenommen` line with `Vorlage=Scatter_Loot_DeepWoods_Hazelnut_d_nuts_harvest_Playerplanted_Refill`; hazelnuts (item 3360608010) were added to the backpack; both bushes still stand, without nuts (screenshot); the log does not repeat the accept every frame once the stock is empty.
+3. Control on fix2: no `Angenommen` line for that Vorlage (`Vorlage unbekannt` instead), no hazelnuts, the nuts still on the bushes.
+4. If fix3 does not harvest them either, the magnet cannot take `InteractionLootRefill` targets: take the five refill lines out of `templates.txt` and the `ripeStages` rule out of `mod.lua` again, and list them in `EXCLUDED`.
 
 ## Fixing a break
 

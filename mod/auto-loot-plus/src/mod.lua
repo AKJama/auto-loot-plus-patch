@@ -317,8 +317,6 @@ local function patchTemplate(resource, components, category, name)
     report[#report + 1] = category .. "\t" .. name
 end
 
--- Allgemeine Drop-Vorlagen: haben keinen festen Gegenstand (PickupItem kommt erst beim
--- Erzeugen dazu). Daraus entstehen z. B. Holz aus zerschlagenen Objekten und Vasen-Beute.
 -- 1.1.8-fix3: unripe growth stages of planted crops are never looted automatically.
 -- A planted seedling (a template with keen::ecs::Growth) turns into the template of each of its
 -- keen::ecs::Upgrade levels in turn; only the last level is the ripe plant. Many middle levels are
@@ -328,18 +326,23 @@ end
 -- (also coffee, elderberry, pumpkin, shiitake, taro, ginger, reed, cattail ...). Every middle level
 -- is excluded from the magnet below, like boss loot, also where the same template grows wild;
 -- pressing E on it still works. templates.txt leaves them out too (tools/growth_stages.py).
+-- The ripe last levels are kept too (ripeStages): planted hazelnut, coffee, date, banana and coconut
+-- ripen into their own *_PlayerPlanted_Refill templates, which no 1.1.8 rule released (see below).
 -- Found in the same pass as genericRefs, so the components are read only once.
-local unripeStages = {}
-local function addUnripeStages(upgrade)
+local unripeStages, ripeStages = {}, {}
+local function addGrowthStages(upgrade)
     local function levelOf(level) return tonumber(field(level, "level")) or 0 end
     -- the ripe stage is the highest level number, whatever the order of the list
     local levels, top = field(upgrade, "levels") or {}, -math.huge
     for _, level in ipairs(levels) do top = math.max(top, levelOf(level)) end
     for _, level in ipairs(levels) do
-        if levelOf(level) < top then unripeStages[tostring(field(level, "upgradeEntity"))] = true end
+        local stages = levelOf(level) < top and unripeStages or ripeStages
+        stages[tostring(field(level, "upgradeEntity"))] = true
     end
 end
 
+-- Allgemeine Drop-Vorlagen: haben keinen festen Gegenstand (PickupItem kommt erst beim
+-- Erzeugen dazu). Daraus entstehen z. B. Holz aus zerschlagenen Objekten und Vasen-Beute.
 local genericRefs = {}
 for _, resource in ipairs(templates) do
     local grows, upgrade = false, nil
@@ -355,7 +358,7 @@ for _, resource in ipairs(templates) do
             upgrade = value
         end
     end
-    if grows and upgrade then addUnripeStages(upgrade) end
+    if grows and upgrade then addGrowthStages(upgrade) end
 end
 genericRefs[NULL_GUID] = nil
 
@@ -503,10 +506,18 @@ for _, resource in ipairs(templates) do
     local name = tostring(field(data, "name"))
     local components = field(data, "components")
     local category = components and lootAllCategory(name, tostring(field(data, "family")), components)
+    local guid = tostring(resource.guid)
+    -- fix3: a ripe planted crop whose stock refills (InteractionLootRefill, no DestroyOnLoot) stays
+    -- standing like the wild regrowing hazelnut and coffee bushes above, so it is a plant too. Its
+    -- family is Container and it has no DefaultInventory, so no rule above takes it.
+    if not category and components and ripeStages[guid] and
+       findComponent(components, "keen::ecs::InteractionLootRefill") and
+       findComponent(components, T.interactionRuntime) and not findComponent(components, T.destroyOnLoot) then
+        category = "plant"
+    end
     -- Boss-Beute nie automatisch (Schlüssel und Quest-Fortschritt hängen am Plündern per Hand): sperren
     if category and lower(name):find("boss") then category = "boss" end
     -- fix3: unripe growth stages are blocked like boss loot (also for the item pass below)
-    local guid = tostring(resource.guid)
     if components and unripeStages[guid] then category = "unripe" end
     if category == "boss" or category == "unripe" then
         -- nie automatisch: sperren, damit die grobe Suche das Objekt nicht als Nachbarn mitnimmt

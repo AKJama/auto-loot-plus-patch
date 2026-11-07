@@ -3,7 +3,7 @@
 An unofficial patch that makes Auto Loot Plus 1.1.8 work with Enshrouded game version 1.0.1.0.
 After that game update the mod loaded but did nothing; its log said "Muster 'box' gefunden: 0 mal".
 It also makes looting work under Linux / Proton again (see "Linux / Steam Deck").
-fix3 stops it from harvesting planted crops before they are ripe (see "Planted crops").
+fix3 stops it from harvesting planted crops before they are ripe, and lets it harvest ripe planted hazelnut, coffee, dates, bananas and coconuts (see "Planted crops").
 fix1 and fix2 change only `dinput8.dll`; fix3 changes only `mods\auto-loot-plus\src\mod.lua` and `mods\auto-loot-plus\templates.txt`; everything else is the original 1.1.8.
 
 ## Credit
@@ -66,6 +66,11 @@ fix3 never loots a middle stage of any crop on its own; only the ripe last stage
 In 1.1.8 that hit 32 stages of hazelnut, coffee, elderberry ("Butterfly Lover Bush"), pumpkin, yellow fog mushroom, shiitake, taro, ginger, algae, daylily, papyrus, reed, cattail and the steppe twig bush.
 Wild plants that are the same object as such a young stage are no longer looted automatically either; press E on them as usual.
 
+The other half: ripe planted hazelnut and coffee bushes and ripe date, banana and coconut palms were never harvested automatically.
+They ripen into objects of their own that refill their nuts or fruit over time, and 1.1.8 did not know them.
+fix3 harvests them with "Bushes and plants", like the wild hazelnut and coffee bushes; they stay standing and refill as usual.
+Crops you harvest by hitting them with a tool (trees, cactus, yucca, bamboo, licuala palm, mangrove, artichoke, cabbage, aloe, flowering and steppe twig bushes) stay manual, planted or wild.
+
 Until fix3 is installed, switch off "Bushes and plants" in the F8 menu (`collectPlants=false`) to keep planted hazelnut, coffee, elderberry and the wetland crops safe.
 That also stops harvesting wild berry bushes, twig bushes, herbs, plant fiber, reeds and fireflies, and the ripe wheat, wetland and ancient-land crops.
 Planted pumpkins and yellow fog mushrooms are ground loot: only "Ground loot" off protects them, and that stops picking up everything on the ground.
@@ -87,7 +92,7 @@ Run `build.cmd`; it fetches Dear ImGui and Vulkan-Headers at pinned versions and
 The first commit is the original 1.1.8 source as downloaded from the Nexus page.
 The later commits add the fixes, the build and this README; each commit message explains its change.
 
-- 1.1.8-fix3: planted crops are no longer harvested before they are ripe (`mod.lua` and `templates.txt`; the DLL stays fix2's).
+- 1.1.8-fix3: planted crops are no longer harvested before they are ripe, and ripe planted hazelnut, coffee, dates, bananas and coconuts are harvested (`mod.lua` and `templates.txt`; the DLL stays fix2's).
 - 1.1.8-fix2: looting works under Linux / Proton; the window pause trusts the mouse cursor only once the game has recentered it, plus the `windowCheck` setting (cause found by a Linux player on the Nexus page).
 - 1.1.8-fix1: works with Enshrouded 1.0.1.0 (new code patterns, offsets read from the game code).
 
