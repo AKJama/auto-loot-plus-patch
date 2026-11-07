@@ -1,22 +1,20 @@
 """Build and check auto-loot-plus-mod-files.zip, the mod files of a release.
 
-The zip holds every file of mod/auto-loot-plus except config.txt, under mods/auto-loot-plus/, so
-unpacking it into the game folder puts each file where the game, EML and dinput8.dll read it:
-  - items.txt        item names (DLL: the "Ignore items" suggestions and filter)
-  - quest_items.txt  quest items that stay in chests and corpses (DLL)
-  - templates.txt    template groups and yields (DLL)
-  - mod.json         the mod's entry for EML
-  - src/mod.lua, src/autosmash_program.lua   the Lua part (EML)
-config.txt holds the player's settings and is never shipped, so unpacking keeps them.
+The zip holds every git-tracked file of mod/auto-loot-plus except the player's own (KEPT: config.txt),
+under mods/auto-loot-plus/, so unpacking it into the game folder puts each file where the game, EML
+and dinput8.dll read it, and keeps the player's settings. REQUIRED says what each file is read for.
 
-The check reads the written zip back and fails when a required file is missing, config.txt is in
-it, or a file differs from the source byte for byte. Standard library only.
+The check reads the written zip back and fails when its files are not exactly the shipped ones, a
+REQUIRED file is missing, config.txt is in it, or a file differs from the source byte for byte. It
+also fails when kModVersion in native/main.cpp and VERSION in mod.lua differ, since the zip ships
+that mod.lua next to the DLL. Standard library and git only.
 
 Usage:
-  python tools/mod_files_zip.py OUT.zip       build OUT.zip and check it (exit 1 on any problem)
-  python tools/mod_files_zip.py --check ZIP   check an existing zip
+  python tools/mod_files_zip.py OUT.zip    build OUT.zip and check it (exit 1 on any problem)
 """
 import argparse
+import re
+import subprocess
 import sys
 import zipfile
 from pathlib import Path
@@ -25,59 +23,70 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "mod" / "auto-loot-plus"
 PREFIX = "mods/auto-loot-plus/"
 KEPT = {"config.txt"}   # the player's own files: never in the zip
-REQUIRED = {"items.txt", "quest_items.txt", "templates.txt", "mod.json", "src/mod.lua", "src/autosmash_program.lua"}
+REQUIRED = {
+    "items.txt": "item names: the DLL's \"Ignore items\" suggestions and filter",
+    "quest_items.txt": "quest items that stay in chests and corpses (DLL)",
+    "templates.txt": "template groups and yields (DLL)",
+    "mod.json": "the mod's entry for EML",
+    "src/mod.lua": "the Lua part (EML)",
+    "src/autosmash_program.lua": "required by mod.lua",
+}
 
 
 def shipped() -> list[str]:
-    """Paths relative to SOURCE, with forward slashes, sorted."""
-    return sorted(p.relative_to(SOURCE).as_posix() for p in SOURCE.rglob("*")
-                  if p.is_file() and p.relative_to(SOURCE).as_posix() not in KEPT)
+    """Tracked files of SOURCE except KEPT, relative, with forward slashes, sorted."""
+    out = subprocess.run(["git", "-C", str(ROOT), "ls-files", "-z", "--", SOURCE.relative_to(ROOT).as_posix()],
+                         check=True, capture_output=True, text=True).stdout
+    rels = (Path(p).relative_to(SOURCE.relative_to(ROOT)).as_posix() for p in out.split("\0") if p)
+    return sorted(r for r in rels if r not in KEPT)
 
 
-def build(out: Path) -> None:
+def build(out: Path, files: list[str]) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
-        for rel in shipped():
+        for rel in files:
             # a fixed date, so the same source gives the same zip
-            info = zipfile.ZipInfo(PREFIX + rel, date_time=(1980, 1, 1, 0, 0, 0))
-            info.compress_type = zipfile.ZIP_DEFLATED
-            info.external_attr = 0o644 << 16
-            z.writestr(info, (SOURCE / rel).read_bytes())
+            z.writestr(zipfile.ZipInfo(PREFIX + rel, date_time=(1980, 1, 1, 0, 0, 0)), (SOURCE / rel).read_bytes(),
+                       compress_type=zipfile.ZIP_DEFLATED)
 
 
-def check(zip_path: Path) -> list[str]:
+def versions_differ() -> str | None:
+    dll = re.search(r'kModVersion = "([^"]+)"', (ROOT / "native" / "main.cpp").read_text(encoding="utf-8"))
+    lua = re.search(r'^local VERSION = "([^"]+)"', (SOURCE / "src" / "mod.lua").read_text(encoding="utf-8"), re.M)
+    dll_v, lua_v = dll and dll.group(1), lua and lua.group(1)
+    return None if dll_v and dll_v == lua_v else f"kModVersion {dll_v} in main.cpp, VERSION {lua_v} in mod.lua"
+
+
+def check(zip_path: Path, files: list[str]) -> tuple[list[str], list[zipfile.ZipInfo]]:
     problems = []
     with zipfile.ZipFile(zip_path) as z:
-        names = [n for n in z.namelist() if not n.endswith("/")]
-        outside = [n for n in names if not n.startswith(PREFIX)]
-        problems += [f"outside {PREFIX}: {n}" for n in outside]
-        rels = {n[len(PREFIX):] for n in names if n.startswith(PREFIX)}
-        problems += [f"must not ship (the player's own): {k}" for k in sorted(KEPT & rels)]
-        problems += [f"missing: {r}" for r in sorted(REQUIRED - rels)]
-        for rel in sorted(rels - KEPT):
-            src = SOURCE / rel
-            if not src.is_file():
-                problems.append(f"not in {SOURCE.relative_to(ROOT).as_posix()}: {rel}")
-            elif z.read(PREFIX + rel) != src.read_bytes():
-                problems.append(f"differs from the source: {rel}")
-    return problems
+        infos = [i for i in z.infolist() if not i.is_dir()]
+        names = {i.filename for i in infos}
+        expected = {PREFIX + r for r in files}
+        problems += [f"must not ship (the player's own): {n}" for n in sorted(names) if n.removeprefix(PREFIX) in KEPT]
+        problems += [f"missing: {r}" for r in sorted(REQUIRED) if PREFIX + r not in names]
+        problems += [f"not a shipped file: {n}" for n in sorted(names - expected)]
+        problems += [f"not in the zip: {n}" for n in sorted(expected - names)]
+        problems += [f"differs from the source: {n}" for n in sorted(names & expected)
+                     if z.read(n) != (SOURCE / n.removeprefix(PREFIX)).read_bytes()]
+    if differ := versions_differ():
+        problems.append(differ)
+    return problems, infos
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("zip", type=Path)
-    ap.add_argument("--check", action="store_true", help="only check an existing zip")
     args = ap.parse_args()
-    if not args.check:
-        build(args.zip)
-    problems = check(args.zip)
+    files = shipped()
+    build(args.zip, files)
+    problems, infos = check(args.zip, files)
     for p in problems:
         print(f"FAIL {p}")
     if problems:
         return 1
-    with zipfile.ZipFile(args.zip) as z:
-        for i in z.infolist():
-            print(f"{i.file_size:>9}  {i.filename}")
+    for i in infos:
+        print(f"{i.file_size:>9}  {i.filename}")
     print("ok")
     return 0
 

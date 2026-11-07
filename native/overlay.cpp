@@ -41,6 +41,8 @@ bool ItemNamesMissing();
 bool FilterNotice(uint32_t* id, uint64_t* tick);
 bool InventoryFullNotice(uint64_t* tick);
 
+static const ImVec4 kWarnColor(0.9f, 0.45f, 0.35f, 1.0f);   // menu lines about a problem
+
 // Item groups for the filter list (game categories of lootable items)
 struct ItemGroup { const char* category; const char* de; const char* en; };
 static const ItemGroup kItemGroups[] = {   // keys = column 7 of items.txt
@@ -1072,9 +1074,9 @@ static bool DrawSetting(Setting& st, float fs)
         }
         if (ItemNamesMissing()) {
             ImGui::PushTextWrapPos(fs * 26.0f);
-            ImGui::TextColored(ImVec4(0.9f, 0.45f, 0.35f, 1.0f), "%s",
-                               T("items.txt fehlt: keine Vorschläge. Entpacke auto-loot-plus-mod-files.zip in den Spielordner.",
-                                 "items.txt missing: no suggestions. Unpack auto-loot-plus-mod-files.zip into the game folder."));
+            ImGui::TextColored(kWarnColor, "%s",
+                               T("items.txt fehlt oder ist leer: keine Vorschläge. Entpacke auto-loot-plus-mod-files.zip in den Spielordner.",
+                                 "items.txt missing or empty: no suggestions. Unpack auto-loot-plus-mod-files.zip into the game folder."));
             ImGui::PopTextWrapPos();
         }
         static ItemSuggestion hits[1024];
@@ -1133,7 +1135,7 @@ static bool DrawSetting(Setting& st, float fs)
                     ImGui::SameLine();
                     ImGui::TextDisabled("%s", e.c_str());
                 } else if (IsUnknownIgnoreEntry(e.c_str())) {
-                    ImGui::TextColored(ImVec4(0.9f, 0.45f, 0.35f, 1.0f), "%s", e.c_str());
+                    ImGui::TextColored(kWarnColor, "%s", e.c_str());
                     ImGui::SameLine();
                     ImGui::TextDisabled("%s", T("(unbekannt - nicht in items.txt)", "(unknown - not in items.txt)"));
                 } else if (disp) {

@@ -94,6 +94,17 @@ Ripe refill crops, fixture `alp-ripe-hazel`: the same world once the bushes are 
 3. Control on fix2: no `Angenommen` line for that Vorlage (`Vorlage unbekannt` instead), no hazelnuts, the nuts still on the bushes.
 4. If fix3 does not harvest them either, the magnet cannot take `InteractionLootRefill` targets: take the five refill lines out of `templates.txt` and the `ripeStages` rule out of `mod.lua` again, and list them in `EXCLUDED`.
 
+## Mod files in the download (fix4)
+
+Up to fix3 the release zip held only `mod.lua` and `templates.txt`, so players without the original 1.1.8 mod files had no `items.txt` and an empty "Ignore items" list (reported on Nexus).
+fix4 ships every tracked mod file except `config.txt` (`tools/mod_files_zip.py`, see "Release").
+A missing `items.txt`, `quest_items.txt` or `templates.txt` now logs one English line that names the fix (`... missing or empty: ...; unpack auto-loot-plus-mod-files.zip into the game folder`, the old German line in brackets), and a missing or empty `items.txt` also shows in the F8 menu's "Ignore items" section.
+The DLL loads `items.txt` right after `config.txt`, before it waits for the game code, so the menu has the names (or the hint) from the start.
+
+Reviews of fix4 (branch `fix4-mod-files`): `/code-review medium` had 10 findings, 8 fixed (the missing-file line for `quest_items.txt` and `templates.txt` too; the menu hint from an atomic flag set by the loader, loaded before the game-code wait; an empty `items.txt` gets the hint as well; the zip from git-tracked files only; the zip compared with the shipped list both ways; one annotated `REQUIRED` list; no Unix mode bits), 2 not (`mod.json` stays `1.1.8`, since a mod manager may read `1.1.8-fix4` as older than `1.1.8`; `python` instead of `uv run` for the standard-library tools, as CI runs them).
+`/simplify` had 11 findings, 8 after dedup, 8 fixed (one missing-file helper with a bit per file instead of an items-only flag; no unused `--check`; the zip opened once for the check and the listing; `REQUIRED` as the only annotated list; the warning colour as one constant; the check against the shipped list; a check that `kModVersion` and the `mod.lua` `VERSION` agree, with the stale `package.py` comment fixed; the efficiency review found nothing).
+The in-game check was skipped: the game was running when fix4 was made, and the rig refuses then; the release relies on the zip check and the log strings in the built DLL.
+
 ## Fixing a break
 
 1. Find the old site in the previous exe (keep a copy of each exe you supported) and the same code in the new one.
@@ -101,7 +112,7 @@ Ripe refill crops, fixture `alp-ripe-hazel`: the same world once the bushes are 
    A moved offset inside a pattern means the pattern offsets (`kSig...` `size_t` constants) change.
 2. Check whether the logic changed: compare the constants and how the magnet uses them, not just the bytes.
    If a constant changed its meaning, update the value check in `Patch()` together with the redirects; never drop the value check.
-3. Bump `kModVersion` in `native/main.cpp` to the next `1.1.8-fixN` (and `VERSION` in `mod.lua` when the Lua or data changes).
+3. Bump `kModVersion` in `native/main.cpp` and `VERSION` in `mod.lua` to the next `1.1.8-fixN` (the release check wants them equal).
 4. Rerun `python tools/check_exe.py` on the new exe until every line is `ok`.
 5. Build (below), install the DLL in a test copy of the game and check the log and the looting in game.
 6. Add a line to "What changed" in `README.md` and update the first lines if the supported game version changed.
@@ -117,10 +128,9 @@ Run `build.cmd`; it fetches Dear ImGui v1.91.9b and Vulkan-Headers v1.4.309 at p
 2. Push `main`; CI builds the DLL.
 3. Tag and push the tag: `git tag v1.1.8-fixN` then `git push origin v1.1.8-fixN`.
    The release workflow builds the DLL from the tag, writes `SHA256SUMS.txt`, attests the build and makes a draft release.
-   `auto-loot-plus-mod-files.zip` comes from `python tools/mod_files_zip.py OUT.zip`: every file of `mod/auto-loot-plus` except the player's `config.txt`, under `mods/auto-loot-plus/`.
-   The script reads the zip back and fails the build when `items.txt` or another file the DLL or the Lua reads is missing, `config.txt` is in it, or a file differs from the source; CI runs it too.
-   Up to fix3 the zip held only `mod.lua` and `templates.txt`, so players without the original mod files had no `items.txt` and an empty "Ignore items" list.
-4. Check the draft (the DLL's `native` line in a game log, the SHA-256), write the notes, then publish it by hand.
+   `auto-loot-plus-mod-files.zip` comes from `python tools/mod_files_zip.py OUT.zip`: every git-tracked file of `mod/auto-loot-plus` except the player's `config.txt`, under `mods/auto-loot-plus/`.
+   The script reads the zip back and fails the build when `items.txt` or another file the DLL or the Lua reads (its `REQUIRED` list) is missing, `config.txt` is in it, or a file differs from the source; CI runs it too.
+   It also fails when `kModVersion` in `main.cpp` and `VERSION` in `mod.lua` differ, so bump both together; `mod.json` stays at the original `1.1.8`.4. Check the draft (the DLL's `native` line in a game log, the SHA-256), write the notes, then publish it by hand.
 5. Tell players on the Nexus page of Auto Loot Plus (mod 170) in one short comment with the release link.
 
 ## When the original author updates

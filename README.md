@@ -30,7 +30,7 @@ To undo it, put the original 1.1.8 files back.
 
 Start the game and open `auto-loot-plus.log` in the game folder.
 It should say "native 1.1.8-fix4", then "Patches angewendet" and "items.txt: 4262 Gegenstaende".
-If it says "items.txt missing", the "Ignore items" list has no suggestions: unpack `auto-loot-plus-mod-files.zip` into the game folder again.
+If it says "items.txt missing or empty", the "Ignore items" list has no suggestions: unpack `auto-loot-plus-mod-files.zip` into the game folder again.
 On any other game version it changes nothing and the log says why.
 The day's EML log in `logs\` says "[Auto Loot Plus] v1.1.8-fix4" and `targetsOff=142` (1 in 1.1.8; on the 4 November 2026 build).
 
@@ -95,7 +95,7 @@ Run `build.cmd`; it fetches Dear ImGui and Vulkan-Headers at pinned versions and
 The first commit is the original 1.1.8 source as downloaded from the Nexus page.
 The later commits add the fixes, the build and this README; each commit message explains its change.
 
-- 1.1.8-fix4: the download includes every mod file except `config.txt`, `items.txt` too, so "Ignore items" works without the original mod files; a missing `items.txt` is named in the log in English with the fix, and in the F8 menu.
+- 1.1.8-fix4: the download includes every mod file except `config.txt`, `items.txt` too, so "Ignore items" works without the original mod files; a missing `items.txt`, `quest_items.txt` or `templates.txt` is named in the log in English with the fix, and a missing `items.txt` also in the F8 menu.
 - 1.1.8-fix3: planted crops are no longer harvested before they are ripe, and ripe planted hazelnut, coffee, dates, bananas and coconuts are harvested (`mod.lua` and `templates.txt`; the DLL stays fix2's).
 - 1.1.8-fix2: looting works under Linux / Proton; the window pause trusts the mouse cursor only once the game has recentered it, plus the `windowCheck` setting (cause found by a Linux player on the Nexus page).
 - 1.1.8-fix1: works with Enshrouded 1.0.1.0 (new code patterns, offsets read from the game code).

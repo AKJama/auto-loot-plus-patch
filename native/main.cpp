@@ -21,11 +21,13 @@
 #include <cmath>
 #include <cwchar>
 #include <algorithm>
+#include <atomic>
 #include <initializer_list>
 #include <string>
 #include <vector>
 
-// Mod version: log line and the title of the F8 menu (overlay.cpp). Keep in sync with mod.lua/mod.json/package.py.
+// Mod version: log line and the title of the F8 menu (overlay.cpp). Same as VERSION in mod.lua (tools/mod_files_zip.py
+// checks it); mod.json stays at the original 1.1.8.
 // 1.1.8-fix1: unofficial fix for game patch 1.0.1.0 (DLL only; mod.lua/mod.json stay 1.1.8).
 // 1.1.8-fix2: the window check no longer blocks looting under Proton (see GameWindowOpen).
 // 1.1.8-fix4: a missing items.txt is named in English with the fix, in the log and the F8 menu.
@@ -686,6 +688,17 @@ static void TargetAccepted(uint32_t host, uint32_t offerId)
     ReleaseSRWLockExclusive(&g_seenLock);
 }
 
+// A data file of mods\auto-loot-plus is missing (or has no entries): one English line that names the
+// fix, the old German line in brackets, and a bit the F8 menu reads (ItemNamesMissing).
+enum : unsigned { kModFileItems = 1, kModFileQuestItems = 2, kModFileTemplates = 4 };
+static std::atomic<unsigned> g_missingModFiles{ 0 };
+
+static void ModFileMissing(unsigned bit, const char* file, const char* effect, const char* german)
+{
+    g_missingModFiles |= bit;
+    Log("%s missing or empty: %s; unpack auto-loot-plus-mod-files.zip into the game folder (%s)", file, effect, german);
+}
+
 // Quest items stay in chests when we loot automatically (list: mods\auto-loot-plus\quest_items.txt)
 static std::vector<uint32_t> g_questItems;
 static volatile LONG64 g_statQuestKept = 0;
@@ -694,7 +707,10 @@ static void LoadQuestItems()
 {
     std::wstring path = g_gameDir + L"\\mods\\auto-loot-plus\\quest_items.txt";
     FILE* f = nullptr;
-    if (_wfopen_s(&f, path.c_str(), L"r") != 0 || !f) { Log("quest_items.txt fehlt"); return; }
+    if (_wfopen_s(&f, path.c_str(), L"r") != 0 || !f) {
+        ModFileMissing(kModFileQuestItems, "quest_items.txt", "quest items are looted too", "quest_items.txt fehlt");
+        return;
+    }
     char line[256];
     while (fgets(line, sizeof line, f)) {
         if (line[0] == '#' || line[0] < '0' || line[0] > '9') continue;
@@ -731,7 +747,6 @@ struct ItemName {
     uint16_t stack = 0;      // original maxStackSize (column 9), 0 = unknown
 };
 static std::vector<ItemName> g_itemNames;
-static volatile bool g_itemNamesMissing = false;   // set once by LoadItemNames: items.txt missing or empty
 static bool ParseGuid(const std::string& text, uint8_t out[16]);
 static std::vector<uint32_t> g_ignoredItems;   // sorted
 static std::vector<std::string> g_unknownIgnoreEntries;   // exact entries only; retained in config
@@ -762,9 +777,7 @@ static void LoadItemNames()
     std::wstring path = g_gameDir + L"\\mods\\auto-loot-plus\\items.txt";
     FILE* f = nullptr;
     if (_wfopen_s(&f, path.c_str(), L"r") != 0 || !f) {
-        Log("items.txt missing: the ignore list is empty; unpack auto-loot-plus-mod-files.zip into the game folder "
-            "(items.txt fehlt - Gegenstandsfilter aus)");
-        g_itemNamesMissing = true;
+        ModFileMissing(kModFileItems, "items.txt", "the ignore list is empty", "items.txt fehlt - Gegenstandsfilter aus");
         return;
     }
     char line[1024];
@@ -789,12 +802,14 @@ static void LoadItemNames()
         g_itemNames.push_back(it);
     }
     fclose(f);
-    Log("items.txt: %zu Gegenstaende", g_itemNames.size());
-    g_itemNamesMissing = g_itemNames.empty();
+    if (g_itemNames.empty())
+        ModFileMissing(kModFileItems, "items.txt", "the ignore list is empty", "items.txt ohne Gegenstaende - Gegenstandsfilter aus");
+    else
+        Log("items.txt: %zu Gegenstaende", g_itemNames.size());
 }
 
 // overlay.cpp: items.txt was missing or empty, so the ignore list has no suggestions
-bool ItemNamesMissing() { return g_itemNamesMissing; }
+bool ItemNamesMissing() { return (g_missingModFiles & kModFileItems) != 0; }
 
 // Sort key for display names: lower case, umlauts as their base letter (ä a, ö o, ü u, ß ss), so
 // "Äste" sorts under A and not behind Z.
@@ -1022,7 +1037,11 @@ static void LoadTemplates()
 {
     std::wstring path = g_gameDir + L"\\mods\\auto-loot-plus\\templates.txt";
     FILE* f = nullptr;
-    if (_wfopen_s(&f, path.c_str(), L"r") != 0 || !f) { Log("templates.txt fehlt – Gruppen nur ueber die Lua-Freigaben"); return; }
+    if (_wfopen_s(&f, path.c_str(), L"r") != 0 || !f) {
+        ModFileMissing(kModFileTemplates, "templates.txt", "groups only through the Lua releases",
+                       "templates.txt fehlt - Gruppen nur ueber die Lua-Freigaben");
+        return;
+    }
     char line[2048];
     while (fgets(line, sizeof line, f)) {
         if (line[0] == '#' || line[0] == '\n') continue;
@@ -2294,6 +2313,9 @@ static DWORD WINAPI Worker(LPVOID)
         g_cfg.radius, g_cfg.autoLoot, g_cfg.corpses, g_cfg.instantLoot, g_cfg.ignoreLineOfSight,
         kWindowCheck[(int)g_cfg.windowCheck]);
     if (!g_cfg.enabled) { Log("deaktiviert (config.txt)"); return 0; }
+    // item names first: they need no game code, and the F8 menu reads them from its own thread
+    LoadItemNames();
+    BuildIgnoreSet(g_cfg.ignoreItems);
     if (!FindText()) { Log(".text nicht gefunden"); return 0; }
 
     // The executable is wrapped (SteamStub); wait until the real code is readable.
@@ -2304,8 +2326,6 @@ static DWORD WINAPI Worker(LPVOID)
     }
     if (!Patch()) { Log("Nichts geändert (Spielversion passt nicht?)"); return 0; }
     Log("Patches angewendet");
-    LoadItemNames();
-    BuildIgnoreSet(g_cfg.ignoreItems);
     LoadTemplates();
 
     g_wake = CreateEventW(nullptr, FALSE, FALSE, nullptr);
