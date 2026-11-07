@@ -91,6 +91,7 @@ local T = {
     inventorySetup = "keen::ecs::InventorySetup",
     defaultInventory = "keen::ecs::DefaultInventory",
     resourceDrops = "keen::ecs::ResourceNodePickupDrops",
+    lootRefill = "keen::ecs::InteractionLootRefill",   -- fix3: ripe planted refill crops
 }
 
 -- Komponenten, die nie automatisch eingesammelt werden dürfen (Tiere, Gegner, Köder ...)
@@ -445,7 +446,7 @@ local targetEnabled = {
     plant = "collectPlants", farm = "collectFarmPlants",
 }
 
-local function lootAllCategory(name, family, components)
+local function lootAllCategory(name, family, components, ripeStage)
     local lname = lower(name)
     if name:find("^LootContainer_Enemy") or name:find("^Base_LootContainer_Enemy") then
         return "corpse"
@@ -468,6 +469,15 @@ local function lootAllCategory(name, family, components)
            matchesAny(lname, questPatterns) or matchesAny(lname, junkPatterns) then return nil end
         -- auch Müll-, Totholz- und Werkzeughaufen in Lagern
         return "chest"
+    end
+    -- fix3: a ripe planted crop whose stock refills (InteractionLootRefill, no DestroyOnLoot) stays
+    -- standing like the wild regrowing hazelnut and coffee bushes below, so it is a plant too. Its
+    -- family is Container and it has no DefaultInventory, so no other rule takes it. Only ripe growth
+    -- stages: the cheat refill chests are Container + InteractionLootRefill as well.
+    if ripeStage and findComponent(components, T.lootRefill) and findComponent(components, T.interactionRuntime) and
+       not findComponent(components, T.destroyOnLoot) and
+       not matchesAny(lname, questPatterns) and not matchesAny(lname, junkPatterns) then
+        return "plant"
     end
     if findComponent(components, T.pickup) or family == "Container" then return nil end
     -- Nachwachsende Erntebäume (Haselnuss im Tiefwald, Kaffeebaum): kein DestroyOnLoot, der Ertrag
@@ -505,16 +515,8 @@ for _, resource in ipairs(templates) do
     local data = resource.data
     local name = tostring(field(data, "name"))
     local components = field(data, "components")
-    local category = components and lootAllCategory(name, tostring(field(data, "family")), components)
     local guid = tostring(resource.guid)
-    -- fix3: a ripe planted crop whose stock refills (InteractionLootRefill, no DestroyOnLoot) stays
-    -- standing like the wild regrowing hazelnut and coffee bushes above, so it is a plant too. Its
-    -- family is Container and it has no DefaultInventory, so no rule above takes it.
-    if not category and components and ripeStages[guid] and
-       findComponent(components, "keen::ecs::InteractionLootRefill") and
-       findComponent(components, T.interactionRuntime) and not findComponent(components, T.destroyOnLoot) then
-        category = "plant"
-    end
+    local category = components and lootAllCategory(name, tostring(field(data, "family")), components, ripeStages[guid])
     -- Boss-Beute nie automatisch (Schlüssel und Quest-Fortschritt hängen am Plündern per Hand): sperren
     if category and lower(name):find("boss") then category = "boss" end
     -- fix3: unripe growth stages are blocked like boss loot (also for the item pass below)

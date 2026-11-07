@@ -80,17 +80,14 @@ def columns(line: str) -> list[str]:
 
 
 def is_unripe(line: str, unripe: dict) -> bool:
-    return not line.startswith("#") and line.split("\t", 1)[0] in unripe
+    cols = columns(line)
+    return bool(cols) and cols[0] in unripe
 
 
 def listed(lines: list[str], unripe: dict) -> list[tuple[str, str]]:
     """(group, name) of each unripe stage templates.txt gives a group (the DLL would loot it)."""
-    hits = []
-    for line in lines:
-        if is_unripe(line, unripe):
-            cols = columns(line)
-            hits.append((cols[1], cols[3] if len(cols) > 3 else ""))
-    return sorted(hits)
+    return sorted((cols[1], cols[3] if len(cols) > 3 else "")
+                  for cols in map(columns, lines) if cols and cols[0] in unripe)
 
 
 def missing_ripe(lines: list[str], ripe: dict[str, Stage]) -> dict[str, Stage]:
@@ -148,34 +145,32 @@ def main() -> int:
     lines = template_lines()
     hits = listed(lines, unripe)
     missing = missing_ripe(lines, ripe)
-    if args.fix and (hits or missing):
-        lines = [l for l in lines if not is_unripe(l, unripe)]
-        print(f"templates.txt: removed {len(hits)} unripe stages:")
-        for group, name in hits:
-            print(f"  {group}\t{name}")
-        hits = []
+    if args.fix:
         # A refill stage stays standing and refills like the wild hazelnut and coffee bushes ("plant").
-        # Any other missing ripe stage needs a look at its wild counterpart: added by hand.
-        added = {guid: s for guid, s in missing.items() if s.harvest == "refill" and s.destroy_on_loot == "0"}
-        print(f"templates.txt: added {len(added)} ripe refill stages as plant:")
-        for guid, s in sorted(added.items(), key=lambda kv: kv[1].name.lower()):
-            insert_sorted(lines, "plant", s.name, f"{guid}\tplant\t\t{s.name}\t{s.yield_ids}\n")
-            print(f"  plant\t{s.name}\t{s.yield_ids}")
-            del missing[guid]
-        TEMPLATES.write_bytes("".join(lines).encode("utf-8"))
-    ok = True
+        # Any other missing ripe stage, or one without numeric item ids, needs a look: added by hand.
+        added = {guid: s for guid, s in missing.items()
+                 if s.harvest == "refill" and s.destroy_on_loot == "0"
+                 and s.yield_ids and all(i.isdigit() for i in s.yield_ids.split(","))}
+        if hits or added:
+            lines = [l for l in lines if not is_unripe(l, unripe)]
+            for group, name in hits:
+                print(f"templates.txt: removed unripe stage {group}\t{name}")
+            hits = []
+            for guid, s in sorted(added.items(), key=lambda kv: kv[1].name.lower()):
+                insert_sorted(lines, "plant", s.name, f"{guid}\tplant\t\t{s.name}\t{s.yield_ids}\n")
+                print(f"templates.txt: added ripe refill stage plant\t{s.name}\t{s.yield_ids}")
+                del missing[guid]
+            TEMPLATES.write_bytes("".join(lines).encode("utf-8"))
     if hits:
-        ok = False
         print(f"FAIL: templates.txt gives {len(hits)} unripe stages a group (the DLL loots them):")
         for group, name in hits:
             print(f"  {group}\t{name}")
     if missing:
-        ok = False
         print(f"FAIL: {len(missing)} ripe stages are harvested by an interaction but neither in templates.txt"
               " nor in EXCLUDED (ALP leaves them alone):")
         for guid, s in sorted(missing.items(), key=lambda kv: kv[1].name):
             print(f"  {s.harvest}\t{s.name}\t{guid}")
-    if not ok:
+    if hits or missing:
         return 1
     print("ok: no unripe stage in templates.txt; every ripe stage harvested by an interaction is listed"
           f" ({len(EXCLUDED)} excluded on purpose)")

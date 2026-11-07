@@ -18,26 +18,26 @@ local function has(components, wanted)
   end
 end
 
-local function harvestOf(r)
-  local components = (r and r.data.components) or {}
-  local dol = has(components, "keen::ecs::DestroyOnLoot") and "1" or "0"
+-- how the game harvests a stage, and its refill items
+local function harvestOf(components)
+  local offered = has(components, "keen::ecs::InteractionOfferRuntime")
   local refill = has(components, "keen::ecs::InteractionLootRefill")
-  if refill then
+  -- as mod.lua's ripeStages rule: a refill with an interaction offer
+  if refill and offered then
     local yield = {}
     for _, item in ipairs(refill.items or {}) do
       local ok, info = pcall(function() return game.assets.get_resource(item.lootableItemRef, "keen::ItemInfo") end)
       yield[#yield + 1] = ok and info and tostring(info.data.itemId.value) or "?"
     end
-    return "refill", dol, table.concat(yield, ",")
+    return "refill", table.concat(yield, ",")
   end
   local inventory = has(components, "keen::ecs::DefaultInventory")
-  if inventory and tostring(inventory.defaultInventory) ~= NULL_GUID and
-     has(components, "keen::ecs::InteractionOfferRuntime") then return "inventory", dol, "" end
-  if has(components, "keen::ecs::PickupItem") then return "pickup", dol, "" end
+  if inventory and tostring(inventory.defaultInventory) ~= NULL_GUID and offered then return "inventory", "" end
+  if has(components, "keen::ecs::PickupItem") then return "pickup", "" end
   if has(components, "keen::ecs::ResourceNodePickupDrops") or has(components, "keen::ecs::Destructible") then
-    return "hit", dol, ""
+    return "hit", ""
   end
-  return "none", dol, ""
+  return "none", ""
 end
 
 local byGuid = {}
@@ -56,10 +56,12 @@ for _, r in ipairs(all) do
     for _, level in ipairs(levels) do top = math.max(top, levelOf(level)) end
     for _, level in ipairs(levels) do
       local stage = tostring(level.upgradeEntity)
-      local harvest, dol, yield = harvestOf(byGuid[stage])
+      local s = byGuid[stage]
+      local stageComponents = (s and s.data.components) or {}
+      local harvest, yield = harvestOf(stageComponents)
       rows[#rows + 1] = table.concat({ tostring(r.guid), tostring(r.data.name), growth, tostring(level.level),
-        stage, byGuid[stage] and tostring(byGuid[stage].data.name) or "?", levelOf(level) == top and "1" or "0",
-        harvest, dol, yield }, "\t")
+        stage, s and tostring(s.data.name) or "?", levelOf(level) == top and "1" or "0",
+        harvest, has(stageComponents, "keen::ecs::DestroyOnLoot") and "1" or "0", yield }, "\t")
     end
   end
 end
