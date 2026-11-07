@@ -20,12 +20,13 @@ for _, r in ipairs(all) do
   if upgrade then
     local growth = has(components, "keen::ecs::Growth") and "1" or "0"
     local levels, top = upgrade.levels or {}, -math.huge
+    local function levelOf(level) return tonumber(level.level) or 0 end
     -- last = the highest level number (the ripe stage), as in mod.lua's unripeStages
-    for _, level in ipairs(levels) do top = math.max(top, tonumber(level.level) or 0) end
+    for _, level in ipairs(levels) do top = math.max(top, levelOf(level)) end
     for _, level in ipairs(levels) do
       local stage = tostring(level.upgradeEntity)
       rows[#rows + 1] = table.concat({ tostring(r.guid), tostring(r.data.name), growth, tostring(level.level),
-        stage, names[stage] or "?", (tonumber(level.level) or 0) == top and "1" or "0" }, "\t")
+        stage, names[stage] or "?", levelOf(level) == top and "1" or "0" }, "\t")
     end
   end
 end

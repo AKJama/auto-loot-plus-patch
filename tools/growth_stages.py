@@ -44,14 +44,16 @@ def template_lines(path: Path = TEMPLATES) -> list[str]:
     return path.read_text(encoding="utf-8").splitlines(keepends=True)
 
 
+def is_unripe(line: str, unripe: dict) -> bool:
+    return not line.startswith("#") and line.split("\t", 1)[0] in unripe
+
+
 def listed(lines: list[str], unripe: dict) -> list[tuple[str, str]]:
     """(group, name) of each unripe stage templates.txt gives a group (the DLL would loot it)."""
     hits = []
     for line in lines:
-        if line.startswith("#"):
-            continue
-        cols = line.rstrip("\r\n").split("\t")
-        if cols[0] in unripe:
+        if is_unripe(line, unripe):
+            cols = line.rstrip("\r\n").split("\t")
             hits.append((cols[1], cols[3] if len(cols) > 3 else ""))
     return sorted(hits)
 
@@ -93,12 +95,11 @@ def main() -> int:
     lines = template_lines()
     hits = listed(lines, unripe)
     if args.fix and hits:
-        kept = [l for l in lines if l.startswith("#") or l.split("\t", 1)[0] not in unripe]
-        TEMPLATES.write_bytes("".join(kept).encode("utf-8"))
-        print(f"templates.txt: removed {len(lines) - len(kept)} unripe stages:")
+        TEMPLATES.write_bytes("".join(l for l in lines if not is_unripe(l, unripe)).encode("utf-8"))
+        print(f"templates.txt: removed {len(hits)} unripe stages:")
         for group, name in hits:
             print(f"  {group}\t{name}")
-        hits = listed(template_lines(), unripe)
+        hits = []
     if hits:
         print(f"FAIL: templates.txt gives {len(hits)} unripe stages a group (the DLL loots them):")
         for group, name in hits:

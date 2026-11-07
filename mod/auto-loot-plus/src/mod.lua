@@ -226,31 +226,6 @@ end
 
 local templates = game.assets.get_resources_by_type("keen::ecs::TemplateResource")
 
--- 1.1.8-fix3: unripe growth stages of planted crops are never looted automatically.
--- A planted seedling (a template with keen::ecs::Growth) turns into the template of each of its
--- keen::ecs::Upgrade levels in turn; only the last level is the ripe plant. Many middle levels are
--- wild-plant templates that ALP releases as bushes or ground loot, so the magnet harvested young
--- crops and destroyed them (DestroyOnLoot): a planted hazelnut's second level is the twig bush
--- Scatter_Loot_DeepWoods_Hazelnut_a_noharvest_InstantLoot, which gave twigs and left an empty bed
--- (also coffee, elderberry, pumpkin, shiitake, taro, ginger, reed, cattail ...). Every middle level
--- is excluded from the magnet below, like boss loot, also where the same template grows wild;
--- pressing E on it still works. templates.txt leaves them out too (tools/growth_stages.py).
-local unripeStages = {}
-for _, resource in ipairs(templates) do
-    local components = field(resource.data, "components")
-    if components and findComponent(components, "keen::ecs::Growth") then
-        local _, upgrade = findComponent(components, "keen::ecs::Upgrade")
-        -- the ripe stage is the highest level number, whatever the order of the list
-        local levels, top = upgrade and field(upgrade, "levels") or {}, -math.huge
-        for _, level in ipairs(levels) do top = math.max(top, tonumber(field(level, "level")) or 0) end
-        for _, level in ipairs(levels) do
-            if (tonumber(field(level, "level")) or 0) < top then
-                unripeStages[tostring(field(level, "upgradeEntity"))] = true
-            end
-        end
-    end
-end
-
 local blueprint = {}
 for _, resource in ipairs(templates) do
     if field(resource.data, "name") == "Base_LootTouch_Orb" then
@@ -344,16 +319,43 @@ end
 
 -- Allgemeine Drop-Vorlagen: haben keinen festen Gegenstand (PickupItem kommt erst beim
 -- Erzeugen dazu). Daraus entstehen z. B. Holz aus zerschlagenen Objekten und Vasen-Beute.
+-- 1.1.8-fix3: unripe growth stages of planted crops are never looted automatically.
+-- A planted seedling (a template with keen::ecs::Growth) turns into the template of each of its
+-- keen::ecs::Upgrade levels in turn; only the last level is the ripe plant. Many middle levels are
+-- wild-plant templates that ALP releases as bushes or ground loot, so the magnet harvested young
+-- crops and destroyed them (DestroyOnLoot): a planted hazelnut's second level is the twig bush
+-- Scatter_Loot_DeepWoods_Hazelnut_a_noharvest_InstantLoot, which gave twigs and left an empty bed
+-- (also coffee, elderberry, pumpkin, shiitake, taro, ginger, reed, cattail ...). Every middle level
+-- is excluded from the magnet below, like boss loot, also where the same template grows wild;
+-- pressing E on it still works. templates.txt leaves them out too (tools/growth_stages.py).
+-- Found in the same pass as genericRefs, so the components are read only once.
+local unripeStages = {}
+local function addUnripeStages(upgrade)
+    local function levelOf(level) return tonumber(field(level, "level")) or 0 end
+    -- the ripe stage is the highest level number, whatever the order of the list
+    local levels, top = field(upgrade, "levels") or {}, -math.huge
+    for _, level in ipairs(levels) do top = math.max(top, levelOf(level)) end
+    for _, level in ipairs(levels) do
+        if levelOf(level) < top then unripeStages[tostring(field(level, "upgradeEntity"))] = true end
+    end
+end
+
 local genericRefs = {}
 for _, resource in ipairs(templates) do
+    local grows, upgrade = false, nil
     for _, component in ipairs(field(resource.data, "components") or {}) do
         local kind, value = field(component, "type"), field(component, "value")
         if kind == T.resourceDrops then
             genericRefs[tostring(field(value, "pickupItemReference"))] = true
         elseif kind == "keen::ecs::PickupLootSlot" then
             genericRefs[tostring(field(value, "genericPickupItem"))] = true
+        elseif kind == "keen::ecs::Growth" then
+            grows = true
+        elseif kind == "keen::ecs::Upgrade" then
+            upgrade = value
         end
     end
+    if grows and upgrade then addUnripeStages(upgrade) end
 end
 genericRefs[NULL_GUID] = nil
 
@@ -362,9 +364,13 @@ for _, resource in ipairs(templates) do
     local name = tostring(field(data, "name"))
     local components = field(data, "components")
     if components then
-        local category, reason = classify(name, components)
+        local category, reason
         -- fix3: unripe growth stage, excluded in the loot-all pass below
-        if unripeStages[tostring(resource.guid)] then category, reason = nil, "Wachstumsstufe" end
+        if unripeStages[tostring(resource.guid)] then
+            reason = "Wachstumsstufe"
+        else
+            category, reason = classify(name, components)
+        end
         if not category and genericRefs[tostring(resource.guid)] and reason == "kein Pickup" and
            findComponent(components, T.destroyOnLoot) then
             local blocked = hasRealDefaultInventory(components)
@@ -500,7 +506,8 @@ for _, resource in ipairs(templates) do
     -- Boss-Beute nie automatisch (Schlüssel und Quest-Fortschritt hängen am Plündern per Hand): sperren
     if category and lower(name):find("boss") then category = "boss" end
     -- fix3: unripe growth stages are blocked like boss loot (also for the item pass below)
-    if components and unripeStages[tostring(resource.guid)] then category = "unripe" end
+    local guid = tostring(resource.guid)
+    if components and unripeStages[guid] then category = "unripe" end
     if category == "boss" or category == "unripe" then
         -- nie automatisch: sperren, damit die grobe Suche das Objekt nicht als Nachbarn mitnimmt
         -- (fix3: unripe stages only when they can be looted at all; young trees have nothing to loot)
@@ -510,14 +517,14 @@ for _, resource in ipairs(templates) do
             excludeFromAreaLoot(components)
             stats.targetsOff = stats.targetsOff + 1
         end
-        handled[tostring(resource.guid)] = true
-        lootAllBlocked[tostring(resource.guid)] = true
+        handled[guid] = true
+        lootAllBlocked[guid] = true
         report[#report + 1] = "off:" .. category .. "\t" .. name
     elseif category then
         if not findComponent(components, lootAllMarker) then
             table.insert(components, { type = lootAllMarker, value = {} })
         end
-        handled[tostring(resource.guid)] = true
+        handled[guid] = true
         -- Freigabe: die erste Prüfung des Magneten für jedes Objekt
         local _, area = findComponent(components, T.areaLoot)
         if area then
@@ -539,6 +546,7 @@ for _, resource in ipairs(templates) do
     local lname = lower(name)
     local components = field(data, "components")
     local nameFits = lname:find("^scatter_loot_") or lname:find("^lootpickup_") or lname:find("shroom") or lname:find("mushroom")
+    -- (1.1.8 name rule; fix3's lootAllBlocked check below covers every unripe stage by GUID)
     local seedling = lname:find("plant_growth") and not lname:find("_harvest")
     if components and not supported[tostring(resource.guid)] and findComponent(components, T.pickup) and
        hasRealDefaultInventory(components) and nameFits and not seedling and

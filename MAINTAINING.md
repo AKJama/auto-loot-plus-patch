@@ -58,6 +58,8 @@ Known limits:
 - Wild plants that are the same template as a middle level are no longer looted automatically either.
 
 Reviews of fix3 (branch `fix3-unripe-crops`): `/code-review medium` had 9 findings, 5 fixed (ripe stage = highest level number, also in the export; pickup-only stages excluded too and `targetsOff` counts only real exclusions; README download check; the release ships the two files as a zip with their folders; `--report` keeps every category of a shared name), 4 not (the smash-trees and stale-TSV limits above, documented; the farm `_1_harvest` middle levels were never in `templates.txt`, so 1.1.8 did not harvest them either).
+`/simplify` had 10 findings, 9 after dedup, 6 fixed (the growth stages found in the `genericRefs` pass instead of an extra pass over all templates; no `classify()` for a growth stage; the level number read once; the GUID string once in the loot-all pass; one line filter for the check and `--fix`; a comment that the 1.1.8 `seedling` name rule is covered by `lootAllBlocked`), 3 not (two more component scans for the 214 middle levels only; one export as the single source of the ripe-stage rule, a larger change; this review note itself, kept because the counts belong here).
+The export after these fixes gave the same `growth-stages.tsv` and a byte-identical `auto-loot-plus-report.txt`.
 
 ### In-game check for fix3
 
