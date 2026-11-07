@@ -240,9 +240,13 @@ for _, resource in ipairs(templates) do
     local components = field(resource.data, "components")
     if components and findComponent(components, "keen::ecs::Growth") then
         local _, upgrade = findComponent(components, "keen::ecs::Upgrade")
-        local levels = upgrade and field(upgrade, "levels") or {}
-        for index, level in ipairs(levels) do
-            if index < #levels then unripeStages[tostring(field(level, "upgradeEntity"))] = true end
+        -- the ripe stage is the highest level number, whatever the order of the list
+        local levels, top = upgrade and field(upgrade, "levels") or {}, -math.huge
+        for _, level in ipairs(levels) do top = math.max(top, tonumber(field(level, "level")) or 0) end
+        for _, level in ipairs(levels) do
+            if (tonumber(field(level, "level")) or 0) < top then
+                unripeStages[tostring(field(level, "upgradeEntity"))] = true
+            end
         end
     end
 end
@@ -499,13 +503,15 @@ for _, resource in ipairs(templates) do
     if components and unripeStages[tostring(resource.guid)] then category = "unripe" end
     if category == "boss" or category == "unripe" then
         -- nie automatisch: sperren, damit die grobe Suche das Objekt nicht als Nachbarn mitnimmt
-        -- (fix3: unripe stages only when they can be looted at all, so young trees stay untouched)
-        if category == "boss" or findComponent(components, T.areaLoot) or findComponent(components, T.interactionRuntime) then
+        -- (fix3: unripe stages only when they can be looted at all; young trees have nothing to loot)
+        local lootable = category == "boss" or findComponent(components, T.areaLoot) or
+                         findComponent(components, T.interactionRuntime) or findComponent(components, T.pickup)
+        if lootable then
             excludeFromAreaLoot(components)
+            stats.targetsOff = stats.targetsOff + 1
         end
         handled[tostring(resource.guid)] = true
         lootAllBlocked[tostring(resource.guid)] = true
-        stats.targetsOff = stats.targetsOff + 1
         report[#report + 1] = "off:" .. category .. "\t" .. name
     elseif category then
         if not findComponent(components, lootAllMarker) then

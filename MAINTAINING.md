@@ -34,7 +34,7 @@ CI runs `python tools/check_exe.py --parse-only`, which fails when `main.cpp` an
 
 ## Growth stages (fix3)
 
-A planted seedling is a template with `keen::ecs::Growth`; its `keen::ecs::Upgrade` levels name the template it turns into at each level, and only the last level is the ripe plant.
+A planted seedling is a template with `keen::ecs::Growth`; its `keen::ecs::Upgrade` levels name the template it turns into at each level, and only the highest level is the ripe plant.
 Many middle levels are wild-plant templates (the planted hazelnut's level 2 is the twig bush `Scatter_Loot_DeepWoods_Hazelnut_a_noharvest_InstantLoot`), so 1.1.8 looted young crops and destroyed them.
 fix3 keeps every middle level away from the magnet in two places:
 
@@ -51,6 +51,14 @@ After a game update:
 3. To see what `mod.lua` does with each middle level, run the export once with the original 1.1.8 mod and once with this one in the scratch `mods\` and compare the two `auto-loot-plus-report.txt`: `python tools/growth_stages.py --report before.txt after.txt`.
    On fix3 every line ends in `off:unripe`; 39 middle levels changed from 1.1.8 (32 of them in `templates.txt`).
 
+Known limits:
+
+- `templates.txt` follows the game data only through the committed TSV: a new middle level after a game update is blocked by `mod.lua` at once, but the DLL alone (without EML) loots it until steps 1 and 2 are rerun.
+- "Fell trees" (`smashTrees`, off by default) still tags young planted trees like grown ones; the aura never works near a base, so trees in a base are safe.
+- Wild plants that are the same template as a middle level are no longer looted automatically either.
+
+Reviews of fix3 (branch `fix3-unripe-crops`): `/code-review medium` had 9 findings, 5 fixed (ripe stage = highest level number, also in the export; pickup-only stages excluded too and `targetsOff` counts only real exclusions; README download check; the release ships the two files as a zip with their folders; `--report` keeps every category of a shared name), 4 not (the smash-trees and stale-TSV limits above, documented; the farm `_1_harvest` middle levels were never in `templates.txt`, so 1.1.8 did not harvest them either).
+
 ### In-game check for fix3
 
 Run it only when nobody is playing, through the rig in `enshrouded-chests` (`docs/test-rig.md`), never on the user's own world.
@@ -59,7 +67,7 @@ Growing a crop takes real game time, so the fixture is made once by hand:
 1. In a rig world (not `world0`), plant two Hazelnut bush seedlings (item 2666875137) in a farm bed next to the Flame Altar, with "Bushes and plants" and "Harvest ripe crops" on and fix3 installed.
 2. Wait until both are small leafy bushes with "Gather" (level 2; `Growth.minDuration` is 1200 s, *guess*: per level and in real time, shorter on good soil), log out, and keep the save as the fixture `alp-unripe-hazel`.
 3. Scenario `alp-unripe-hazel`: set `debugLog=true` in the test copy's `config.txt`, load the world, stand at the bed for 15 s, log out.
-4. Pass on fix3: the EML log says `[Auto Loot Plus] v1.1.8-fix3` with `targetsOff=215`; `auto-loot-plus.log` has no `Angenommen` line with `Vorlage=Scatter_Loot_DeepWoods_Hazelnut_a_noharvest_InstantLoot`; no Twig was added to the backpack; both bushes still stand (screenshot).
+4. Pass on fix3: the EML log says `[Auto Loot Plus] v1.1.8-fix3` with `targetsOff=142` (1 boss target and the 141 middle levels that can be looted at all); `auto-loot-plus.log` has no `Angenommen` line with `Vorlage=Scatter_Loot_DeepWoods_Hazelnut_a_noharvest_InstantLoot`; no Twig was added to the backpack; both bushes still stand (screenshot).
 5. Control on fix2 (original `mod.lua` and `templates.txt`): the same scenario must fail: that `Angenommen` line, Twigs in the backpack, two empty spots with a dust puff.
 
 The fixture world can also be checked by hand: walk up to a level-2 planted hazelnut with fix3 and the bush must stay.

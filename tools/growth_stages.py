@@ -57,13 +57,15 @@ def listed(lines: list[str], unripe: dict) -> list[tuple[str, str]]:
 
 
 def report_categories(path: Path, names: set[str]) -> dict[str, str]:
-    """name -> mod.lua's category for that template (report lines "category<TAB>name")."""
-    out = {}
+    """name -> mod.lua's categories for that name (report lines "category<TAB>name").
+
+    The report has no GUIDs; templates sharing a name show all their categories joined by "+"."""
+    out: dict[str, set[str]] = {}
     for line in path.read_text(encoding="utf-8").splitlines():
         cols = line.split("\t")
         if len(cols) > 1 and cols[1] in names:
-            out[cols[1]] = cols[0]
-    return out
+            out.setdefault(cols[1], set()).add(cols[0])
+    return {name: "+".join(sorted(cats)) for name, cats in out.items()}
 
 
 def main() -> int:

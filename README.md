@@ -18,7 +18,8 @@ This patch will be retired as soon as an official update is out.
 1. Install Auto Loot Plus 1.1.8 from the Nexus page as usual, if you have not already.
 2. Close the game.
 3. Replace `dinput8.dll` in the Enshrouded game folder with the one from this release.
-4. Replace `mods\auto-loot-plus\src\mod.lua` and `mods\auto-loot-plus\templates.txt` with the ones from this release; keep the rest of that folder (your `config.txt` stays).
+4. Unpack `auto-loot-plus-mod-files.zip` from this release into the Enshrouded game folder and let it overwrite.
+   It holds only `mods\auto-loot-plus\src\mod.lua` and `mods\auto-loot-plus\templates.txt`; the rest of that folder, your `config.txt` too, stays as it is.
 5. EML (`dbghelp.dll`) is still needed for corpses, chests and the settings; without it only items on the ground are picked up.
 
 To undo it, put the original 1.1.8 files back.
@@ -28,7 +29,7 @@ To undo it, put the original 1.1.8 files back.
 Start the game and open `auto-loot-plus.log` in the game folder.
 It should say "native 1.1.8-fix2" and then "Patches angewendet".
 On any other game version it changes nothing and the log says why.
-With fix3, the day's EML log in `logs\` says "[Auto Loot Plus] v1.1.8-fix3" and `targetsOff=215` (1 in 1.1.8).
+With fix3, the day's EML log in `logs\` says "[Auto Loot Plus] v1.1.8-fix3" and `targetsOff=142` (1 in 1.1.8; on the 4 November 2026 build).
 
 Tested on Enshrouded 1.0.1.0 (2 November 2026, exe build stamp `6ae4601e`) and on the update of 4 November 2026 (Steam build 26430625, exe build stamp `6aeb144c`), which needed no change.
 
@@ -71,10 +72,10 @@ Planted pumpkins and yellow fog mushrooms are ground loot: only "Ground loot" of
 
 ## Check the download
 
-Each release lists the SHA-256 of `dinput8.dll` in `SHA256SUMS.txt`.
-Compare it in PowerShell with `Get-FileHash dinput8.dll`.
-The DLL is built by GitHub Actions from this source, and GitHub signs a record of that build.
-To check it, run `gh attestation verify dinput8.dll --repo AKJama/auto-loot-plus-patch`.
+Each release lists the SHA-256 of `dinput8.dll` (and, from fix3, of `auto-loot-plus-mod-files.zip`) in `SHA256SUMS.txt`.
+Compare it in PowerShell with `Get-FileHash dinput8.dll` and `Get-FileHash auto-loot-plus-mod-files.zip`.
+Both are built by GitHub Actions from this source, and GitHub signs a record of that build.
+To check it, run `gh attestation verify dinput8.dll --repo AKJama/auto-loot-plus-patch`, and the same for the zip.
 
 ## Build it yourself
 
