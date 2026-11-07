@@ -24,12 +24,11 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
           Copy-Item build/dinput8.dll dist
-          # Since fix3 the mod's Lua and template list change too: a zip with their place in the game
-          # folder (mods\auto-loot-plus\...), so unpacking it into the game folder puts them right
-          New-Item -ItemType Directory -Force stage/mods/auto-loot-plus/src | Out-Null
-          Copy-Item mod/auto-loot-plus/src/mod.lua stage/mods/auto-loot-plus/src
-          Copy-Item mod/auto-loot-plus/templates.txt stage/mods/auto-loot-plus
-          Compress-Archive -Path stage/mods -DestinationPath dist/auto-loot-plus-mod-files.zip
+          # Every mod file except the player's config.txt, at its place in the game folder
+          # (mods\auto-loot-plus\...); the script reads the zip back and fails the build when
+          # items.txt or another required file is missing or config.txt is in it
+          python tools/mod_files_zip.py dist/auto-loot-plus-mod-files.zip
+          if ($LASTEXITCODE) { exit 1 }
           Copy-Item LICENSE.txt dist/AutoLootPlus-LICENSE.txt
           Copy-Item native/third_party/imgui/LICENSE.txt dist/DearImGui-LICENSE.txt
           Copy-Item native/third_party/vulkan/LICENSE.md dist/Vulkan-Headers-LICENSE.md

@@ -7,7 +7,7 @@
 -- Questgegenstände, Tiere, abgelegte Köder, geworfene Fackeln und eigene Truhen bleiben unverändert.
 
 local TAG = "[Auto Loot Plus]"
-local VERSION = "1.1.8-fix3"   -- unofficial patch (AKJama/auto-loot-plus-patch); the original is 1.1.8
+local VERSION = "1.1.8-fix4"   -- unofficial patch (AKJama/auto-loot-plus-patch); the original is 1.1.8
 local NULL_GUID = "00000000-0000-0000-0000-000000000000"
 
 ---------------------------------------------------------------------------

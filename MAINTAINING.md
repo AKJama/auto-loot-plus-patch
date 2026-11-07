@@ -117,6 +117,9 @@ Run `build.cmd`; it fetches Dear ImGui v1.91.9b and Vulkan-Headers v1.4.309 at p
 2. Push `main`; CI builds the DLL.
 3. Tag and push the tag: `git tag v1.1.8-fixN` then `git push origin v1.1.8-fixN`.
    The release workflow builds the DLL from the tag, writes `SHA256SUMS.txt`, attests the build and makes a draft release.
+   `auto-loot-plus-mod-files.zip` comes from `python tools/mod_files_zip.py OUT.zip`: every file of `mod/auto-loot-plus` except the player's `config.txt`, under `mods/auto-loot-plus/`.
+   The script reads the zip back and fails the build when `items.txt` or another file the DLL or the Lua reads is missing, `config.txt` is in it, or a file differs from the source; CI runs it too.
+   Up to fix3 the zip held only `mod.lua` and `templates.txt`, so players without the original mod files had no `items.txt` and an empty "Ignore items" list.
 4. Check the draft (the DLL's `native` line in a game log, the SHA-256), write the notes, then publish it by hand.
 5. Tell players on the Nexus page of Auto Loot Plus (mod 170) in one short comment with the release link.
 

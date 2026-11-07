@@ -28,7 +28,8 @@
 // Mod version: log line and the title of the F8 menu (overlay.cpp). Keep in sync with mod.lua/mod.json/package.py.
 // 1.1.8-fix1: unofficial fix for game patch 1.0.1.0 (DLL only; mod.lua/mod.json stay 1.1.8).
 // 1.1.8-fix2: the window check no longer blocks looting under Proton (see GameWindowOpen).
-extern const char* const kModVersion = "1.1.8-fix2";
+// 1.1.8-fix4: a missing items.txt is named in English with the fix, in the log and the F8 menu.
+extern const char* const kModVersion = "1.1.8-fix4";
 
 // ---------------------------------------------------------------------------
 // dinput8 proxy
@@ -730,6 +731,7 @@ struct ItemName {
     uint16_t stack = 0;      // original maxStackSize (column 9), 0 = unknown
 };
 static std::vector<ItemName> g_itemNames;
+static volatile bool g_itemNamesMissing = false;   // set once by LoadItemNames: items.txt missing or empty
 static bool ParseGuid(const std::string& text, uint8_t out[16]);
 static std::vector<uint32_t> g_ignoredItems;   // sorted
 static std::vector<std::string> g_unknownIgnoreEntries;   // exact entries only; retained in config
@@ -759,7 +761,12 @@ static void LoadItemNames()
 {
     std::wstring path = g_gameDir + L"\\mods\\auto-loot-plus\\items.txt";
     FILE* f = nullptr;
-    if (_wfopen_s(&f, path.c_str(), L"r") != 0 || !f) { Log("items.txt fehlt – Gegenstandsfilter aus"); return; }
+    if (_wfopen_s(&f, path.c_str(), L"r") != 0 || !f) {
+        Log("items.txt missing: the ignore list is empty; unpack auto-loot-plus-mod-files.zip into the game folder "
+            "(items.txt fehlt - Gegenstandsfilter aus)");
+        g_itemNamesMissing = true;
+        return;
+    }
     char line[1024];
     while (fgets(line, sizeof line, f)) {
         if (line[0] < '0' || line[0] > '9') continue;
@@ -782,7 +789,12 @@ static void LoadItemNames()
         g_itemNames.push_back(it);
     }
     fclose(f);
+    Log("items.txt: %zu Gegenstaende", g_itemNames.size());
+    g_itemNamesMissing = g_itemNames.empty();
 }
+
+// overlay.cpp: items.txt was missing or empty, so the ignore list has no suggestions
+bool ItemNamesMissing() { return g_itemNamesMissing; }
 
 // Sort key for display names: lower case, umlauts as their base letter (ä a, ö o, ü u, ß ss), so
 // "Äste" sorts under A and not behind Z.

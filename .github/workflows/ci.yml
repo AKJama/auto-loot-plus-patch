@@ -20,3 +20,5 @@ jobs:
         run: python tools/check_exe.py --parse-only
       - name: No unripe growth stage in templates.txt
         run: python tools/growth_stages.py
+      - name: Mod files zip has items.txt and no config.txt
+        run: python tools/mod_files_zip.py dist/auto-loot-plus-mod-files.zip

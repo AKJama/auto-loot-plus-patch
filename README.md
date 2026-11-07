@@ -1,10 +1,11 @@
-# Auto Loot Plus 1.1.8-fix3 (unofficial patch)
+# Auto Loot Plus 1.1.8-fix4 (unofficial patch)
 
 An unofficial patch that makes Auto Loot Plus 1.1.8 work with Enshrouded game version 1.0.1.0.
 After that game update the mod loaded but did nothing; its log said "Muster 'box' gefunden: 0 mal".
 It also makes looting work under Linux / Proton again (see "Linux / Steam Deck").
 fix3 stops it from harvesting planted crops before they are ripe, and lets it harvest ripe planted hazelnut, coffee, dates, bananas and coconuts (see "Planted crops").
-fix1 and fix2 change only `dinput8.dll`; fix3 changes only `mods\auto-loot-plus\src\mod.lua` and `mods\auto-loot-plus\templates.txt`; everything else is the original 1.1.8.
+fix4 ships every mod file the patch reads with the download, so "Ignore items" works without the original mod files.
+fix1 and fix2 change only `dinput8.dll`; fix3 changes only `mods\auto-loot-plus\src\mod.lua` and `mods\auto-loot-plus\templates.txt`; the other mod files are the original 1.1.8.
 
 ## Credit
 
@@ -19,7 +20,8 @@ This patch will be retired as soon as an official update is out.
 2. Close the game.
 3. Replace `dinput8.dll` in the Enshrouded game folder with the one from this release.
 4. Unpack `auto-loot-plus-mod-files.zip` from this release into the Enshrouded game folder and let it overwrite.
-   It holds only `mods\auto-loot-plus\src\mod.lua` and `mods\auto-loot-plus\templates.txt`; the rest of that folder, your `config.txt` too, stays as it is.
+   It holds every file of `mods\auto-loot-plus` except `config.txt`: `items.txt` (the item list of "Ignore items"), `quest_items.txt`, `templates.txt`, `mod.json`, `src\mod.lua` and `src\autosmash_program.lua`.
+   Your settings in `mods\auto-loot-plus\config.txt` are kept.
 5. EML (`dbghelp.dll`) is still needed for corpses, chests and the settings; without it only items on the ground are picked up.
 
 To undo it, put the original 1.1.8 files back.
@@ -27,9 +29,10 @@ To undo it, put the original 1.1.8 files back.
 ## Check that it works
 
 Start the game and open `auto-loot-plus.log` in the game folder.
-It should say "native 1.1.8-fix2" and then "Patches angewendet".
+It should say "native 1.1.8-fix4", then "Patches angewendet" and "items.txt: 4262 Gegenstaende".
+If it says "items.txt missing", the "Ignore items" list has no suggestions: unpack `auto-loot-plus-mod-files.zip` into the game folder again.
 On any other game version it changes nothing and the log says why.
-With fix3, the day's EML log in `logs\` says "[Auto Loot Plus] v1.1.8-fix3" and `targetsOff=142` (1 in 1.1.8; on the 4 November 2026 build).
+The day's EML log in `logs\` says "[Auto Loot Plus] v1.1.8-fix4" and `targetsOff=142` (1 in 1.1.8; on the 4 November 2026 build).
 
 Tested on Enshrouded 1.0.1.0 (2 November 2026, exe build stamp `6ae4601e`) and on the update of 4 November 2026 (Steam build 26430625, exe build stamp `6aeb144c`), which needed no change.
 
@@ -55,7 +58,7 @@ fix2 itself was checked under Wine 10.0 with an offline load test, not yet in th
 
 If looting still stops or misbehaves around game windows, add one line to `mods\auto-loot-plus\config.txt`:
 `windowCheck=auto` is the default described above, `windowCheck=on` always trusts the cursor (as in 1.1.8), and `windowCheck=off` never pauses for game windows.
-The "native 1.1.8-fix2" line in `auto-loot-plus.log` shows which one is active.
+The "native 1.1.8-fixN" line in `auto-loot-plus.log` shows which one is active.
 
 ## Planted crops
 
@@ -92,6 +95,7 @@ Run `build.cmd`; it fetches Dear ImGui and Vulkan-Headers at pinned versions and
 The first commit is the original 1.1.8 source as downloaded from the Nexus page.
 The later commits add the fixes, the build and this README; each commit message explains its change.
 
+- 1.1.8-fix4: the download includes every mod file except `config.txt`, `items.txt` too, so "Ignore items" works without the original mod files; a missing `items.txt` is named in the log in English with the fix, and in the F8 menu.
 - 1.1.8-fix3: planted crops are no longer harvested before they are ripe, and ripe planted hazelnut, coffee, dates, bananas and coconuts are harvested (`mod.lua` and `templates.txt`; the DLL stays fix2's).
 - 1.1.8-fix2: looting works under Linux / Proton; the window pause trusts the mouse cursor only once the game has recentered it, plus the `windowCheck` setting (cause found by a Linux player on the Nexus page).
 - 1.1.8-fix1: works with Enshrouded 1.0.1.0 (new code patterns, offsets read from the game code).

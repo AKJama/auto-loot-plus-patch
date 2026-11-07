@@ -37,6 +37,7 @@ struct ItemSuggestion { uint32_t id; const char* internalName; const char* displ
 size_t SuggestItems(const char* query, bool german, const char* category, ItemSuggestion* out, size_t max);
 const char* ItemDisplayName(const char* internalName, bool german);
 const char* ItemDisplayNameById(uint32_t id, bool german);
+bool ItemNamesMissing();
 bool FilterNotice(uint32_t* id, uint64_t* tick);
 bool InventoryFullNotice(uint64_t* tick);
 
@@ -1068,6 +1069,13 @@ static bool DrawSetting(Setting& st, float fs)
                 else entries.push_back(groupEntry);
                 store();
             }
+        }
+        if (ItemNamesMissing()) {
+            ImGui::PushTextWrapPos(fs * 26.0f);
+            ImGui::TextColored(ImVec4(0.9f, 0.45f, 0.35f, 1.0f), "%s",
+                               T("items.txt fehlt: keine Vorschläge. Entpacke auto-loot-plus-mod-files.zip in den Spielordner.",
+                                 "items.txt missing: no suggestions. Unpack auto-loot-plus-mod-files.zip into the game folder."));
+            ImGui::PopTextWrapPos();
         }
         static ItemSuggestion hits[1024];
         bool listable = query.size() >= 3 || (category[0] && s_showList);
